@@ -1,13 +1,13 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomePage from "../views/HomePage.vue";
 import KnowledgeTree from "../views/KnowledgeTree.vue";
-import Leaderboard from "../views/Leaderboard.vue";
+import LeaderboardPage from "../views/LeaderboardPage.vue";
 import SeaTurtleSoup from "../views/SeaTurtleSoup.vue";
 
 const routes = [
 //   { path: "/login", name: "login", component: LoginView },
   { path: "/KnowledgeTree", name: "knowledgetree", component: KnowledgeTree },
-  { path: "/leaderboard", name: "leaderboard", component: Leaderboard },
+  { path: "/leaderboard", name: "leaderboard", component: LeaderboardPage },
   { path: "/sea-turtle-soup", name: "seaturtlesoup", component: SeaTurtleSoup },
   { path: "/", name: "homepage", component: HomePage },
   { path: "/:catchAll(.*)", redirect: "/" },

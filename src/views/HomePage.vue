@@ -446,7 +446,7 @@ onBeforeUnmount(() => {
               </div>
               <div class="mode-text-content">
                 <h3 class="mode-title">搶答模式</h3>
-                <p class="mode-desc">競���搶答，獲得線索與金幣吧！</p>
+                <p class="mode-desc">競速模式搶答，獲得線索與金幣吧！</p>
               </div>
             </div>
           </div>
