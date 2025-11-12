@@ -1,273 +1,5 @@
-<script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
-import PathLayout from '../components/quiz/PathLayout.vue'
-import QuestionCard from '../components/quiz/QuestionCard.vue'
-import QuestionModal from '../components/quiz/QuestionModal.vue'
-import { subjects } from '../data/quizData.js'
-
-interface BuildingCard {
-  id: number
-  title: string
-  description: string
-  image: string
-  effects: {
-    type: string
-    value: string
-    icon: string
-  }[]
-}
-
-const router = useRouter()
-const currentSubjectIndex = ref(0)
-const currentSubject = ref(subjects[0])
-const showModal = ref(false)
-const selectedQuestion = ref(null)
-const resultState = ref('idle') // 'idle', 'correct', 'wrong'
-const subjectCards = ref([])
-
-// 導覽列相關變數
-const isNotificationActive = ref(true)
-const showNotification = ref(false)
-const showSidebar = ref(false)
-const sidebarSection = ref(null)
-
-const players = ref(['玩家一', '玩家二', '玩家三', '玩家四', '玩家五'])
-const clues = ref([
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。'
-])
-
-const buildingCards = ref<BuildingCard[]>([
-  {
-    id: 1,
-    title: '火力發電廠',
-    description: '透過建設火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
-    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fc4de6010b3be41548b416bd62c8334da?format=webp&width=800',
-    effects: [
-      { type: '經濟', value: '+2', icon: '#87FF7C' },
-      { type: '健康', value: '-3', icon: '#FF7C7C' },
-      { type: '電力', value: '+3', icon: '#FFEE7C' }
-    ]
-  },
-  {
-    id: 2,
-    title: '堰塞湖',
-    description: '處理堰塞湖，花費了大量經濟及人力。\n但因為妥善處理，於後續的大雨中並無造成人口傷亡，同時糧食也順利收成。',
-    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fd74f6bb3a084490baaf984f7e1cc2e2d?format=webp&width=800',
-    effects: [
-      { type: '經濟', value: '-3', icon: '#87FF7C' },
-      { type: '人口', value: '-1', icon: '#7C7EFF' },
-      { type: '糧食', value: '+2', icon: '#FFC47C' }
-    ]
-  },
-  {
-    id: 3,
-    title: '金域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
-    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Ff6d013861f294f4c90630637a06577e7?format=webp&width=800',
-    effects: [
-      { type: '經濟', value: '+2', icon: '#87FF7C' },
-      { type: '健康', value: '-3', icon: '#FF7C7C' },
-      { type: '電力', value: '+3', icon: '#FFEE7C' }
-    ]
-  },
-  {
-    id: 4,
-    title: '光域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
-    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fd2932616865f401ebc49890ae648582f?format=webp&width=800',
-    effects: [
-      { type: '經濟', value: '+2', icon: '#87FF7C' },
-      { type: '健康', value: '-3', icon: '#FF7C7C' },
-      { type: '電力', value: '+3', icon: '#FFEE7C' }
-    ]
-  },
-  {
-    id: 5,
-    title: '水域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
-    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F78a89b8524fd40f3a369c1ea1122945a?format=webp&width=800',
-    effects: [
-      { type: '經濟', value: '+2', icon: '#87FF7C' },
-      { type: '健康', value: '-3', icon: '#FF7C7C' },
-      { type: '電力', value: '+3', icon: '#FFEE7C' }
-    ]
-  },
-  {
-    id: 6,
-    title: '雷域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
-    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F790594077862490d806b7169d2887e8b?format=webp&width=800',
-    effects: [
-      { type: '經濟', value: '+2', icon: '#87FF7C' },
-      { type: '健康', value: '-3', icon: '#FF7C7C' },
-      { type: '電力', value: '+3', icon: '#FFEE7C' }
-    ]
-  },
-  {
-    id: 7,
-    title: '木域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
-    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F96ae0937fafa460c9863aa786605a37c?format=webp&width=800',
-    effects: [
-      { type: '經濟', value: '+2', icon: '#87FF7C' },
-      { type: '健康', value: '-3', icon: '#FF7C7C' },
-      { type: '電力', value: '+3', icon: '#FFEE7C' }
-    ]
-  },
-  {
-    id: 8,
-    title: '風域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
-    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F2333e1220b3a4077a859f4cb9b5ec726?format=webp&width=800',
-    effects: [
-      { type: '經濟', value: '+2', icon: '#87FF7C' },
-      { type: '健康', value: '-3', icon: '#FF7C7C' },
-      { type: '電力', value: '+3', icon: '#FFEE7C' }
-    ]
-  },
-  {
-    id: 9,
-    title: '空域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
-    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F36288cf9aad0457f901b18157254c94b?format=webp&width=800',
-    effects: [
-      { type: '經濟', value: '+2', icon: '#87FF7C' },
-      { type: '健康', value: '-3', icon: '#FF7C7C' },
-      { type: '電力', value: '+3', icon: '#FFEE7C' }
-    ]
-  }
-])
-
-let lastScrollPosition = 0
-
-// 滾動到科目卡片底部
-const scrollToBottom = (index) => {
-  nextTick(() => {
-    const card = subjectCards.value[index]
-    if (card) {
-      card.scrollTop = card.scrollHeight - card.clientHeight
-    }
-  })
-}
-
-const handleScroll = (event) => {
-  const container = event.target
-  const index = Math.round(container.scrollLeft / container.clientWidth)
-  if (index !== currentSubjectIndex.value && index < subjects.length) {
-    currentSubjectIndex.value = index
-    currentSubject.value = subjects[index]
-    // 切換科目時滾動到底部
-    scrollToBottom(index)
-  }
-}
-
-// 初次載入時滾動到底部
-onMounted(() => {
-  scrollToBottom(0)
-})
-
-const openModal = (question) => {
-  selectedQuestion.value = question
-  showModal.value = true
-  resultState.value = 'idle'
-}
-
-const closeModal = () => {
-  showModal.value = false
-  setTimeout(() => {
-    selectedQuestion.value = null
-    resultState.value = 'idle'
-  }, 300) // 等待動畫完成
-}
-
-const normalizeAnswer = (text) => {
-  // 移除空格、轉小寫，用於比對答案
-  return text.toLowerCase().replace(/\s+/g, '')
-}
-
-const handleSubmit = (userAnswer) => {
-  if (!selectedQuestion.value) return
-
-  const correctAnswer = selectedQuestion.value.answer
-  const normalizedUserAnswer = normalizeAnswer(userAnswer)
-  const normalizedCorrectAnswer = normalizeAnswer(correctAnswer)
-
-  if (normalizedUserAnswer === normalizedCorrectAnswer) {
-    // 答對
-    resultState.value = 'correct'
-    // 更新完成題數
-    if (!selectedQuestion.value.completed) {
-      selectedQuestion.value.completed = true
-      currentSubject.value.progress.completed++
-    }
-  } else {
-    // 答錯
-    resultState.value = 'wrong'
-  }
-}
-
-// 導覽列相關函數
-function toggleNotification() {
-  isNotificationActive.value = !isNotificationActive.value
-  if (isNotificationActive.value) {
-    showNotification.value = true
-  } else {
-    showNotification.value = false
-  }
-}
-
-function closeNotification() {
-  showNotification.value = false
-}
-
-function toggleSidebar() {
-  showSidebar.value = !showSidebar.value
-  if (!showSidebar.value) {
-    sidebarSection.value = null
-    document.body.style.overflow = 'auto'
-    window.removeEventListener('scroll', handleSidebarScroll)
-  } else {
-    lastScrollPosition = window.scrollY
-    document.body.style.overflow = 'hidden'
-    window.addEventListener('scroll', handleSidebarScroll)
-  }
-}
-
-function handleSidebarScroll() {
-  if (showSidebar.value && window.scrollY !== lastScrollPosition) {
-    showSidebar.value = false
-    sidebarSection.value = null
-    document.body.style.overflow = 'auto'
-    window.removeEventListener('scroll', handleSidebarScroll)
-  }
-}
-
-function toggleSection(section) {
-  if (sidebarSection.value === section) {
-    sidebarSection.value = null
-  } else {
-    sidebarSection.value = section
-  }
-}
-
-// 返回首頁
-const goBack = () => {
-  router.push('/')
-}
-</script>
-
 <template>
-  <div class="quiz-page" :class="{ 'sidebar-open': showSidebar }">
+  <div class="leaderboard-page" :class="{ 'sidebar-open': showSidebar }">
     <!-- Sidebar Overlay -->
     <transition name="fade">
       <div v-if="showSidebar" class="sidebar-overlay" @click="toggleSidebar">
@@ -455,42 +187,277 @@ const goBack = () => {
       </div>
     </div>
 
-    <div class="subject-info">
-      <div class="subject-badge">{{ currentSubject.name }}</div>
-      <div class="subject-progress">請選擇題目挑戰</div>
-      <div class="subject-progress">已完成 {{ currentSubject.progress.completed }}/{{ currentSubject.progress.total }} 題</div>
+    <!-- 標題資訊 -->
+    <div class="page-info">
+      <div class="title-row">
+        <div class="trophy-icon">🏆</div>
+        <h2 class="page-title">搶答排行榜</h2>
+      </div>
+      <p class="subtitle">查看各科目排行與總排行</p>
     </div>
 
-    <div class="cards-wrapper" @scroll="handleScroll">
-      <div
-        v-for="(subject, index) in subjects"
-        :key="subject.id"
-        :ref="el => { if (el) subjectCards[index] = el }"
-        class="subject-card"
-      >
-        <PathLayout
-          :subject-id="subject.id"
-          :questions="subject.questions"
-          @question-click="openModal"
-        >
-          <template #question="{ question }">
-            <QuestionCard :question="question" />
-          </template>
-        </PathLayout>
+    <!-- 科目標籤容器 -->
+    <div class="subjects-container">
+      <div class="subjects-scroll" ref="subjectsScroll">
+        <div class="subjects-wrapper">
+          <button
+            v-for="subject in subjects"
+            :key="subject.id"
+            class="subject-tab"
+            :class="{ active: currentSubject.id === subject.id }"
+            @click="selectSubject(subject)"
+          >
+            {{ subject.name }}
+          </button>
+        </div>
+      </div>
+
+      <!-- 玩家排行榜列表 -->
+      <div class="leaderboard-content">
+        <div class="players-list">
+          <div
+            v-for="player in currentPlayers"
+            :key="player.rank"
+            class="player-card"
+            :class="{ 'top-rank': player.rank <= 3 }"
+          >
+            <!-- 排名顯示 -->
+            <div class="rank-badge">
+              <span v-if="player.rank === 1" class="medal gold">🥇</span>
+              <span v-else-if="player.rank === 2" class="medal silver">🥈</span>
+              <span v-else-if="player.rank === 3" class="medal bronze">🥉</span>
+              <span v-else class="rank-number">{{ player.rank }}</span>
+            </div>
+
+            <!-- 玩家資訊 -->
+            <div class="player-info">
+              <div class="player-name">{{ player.playerName }}</div>
+              <div class="player-stats">
+                <div class="stat-item">
+                  <span class="stat-icon">✏️</span>
+                  <span class="stat-label">答題數:</span>
+                  <span class="stat-value">{{ player.questionsAnswered }} / {{ player.totalQuestions }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-icon">⏱️</span>
+                  <span class="stat-label">平均作答時間:</span>
+                  <span class="stat-value">{{ player.avgTime }}秒</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-
-    <!-- 模態框 -->
-    <QuestionModal
-      v-if="selectedQuestion"
-      :question="selectedQuestion"
-      :show="showModal"
-      :result-state="resultState"
-      @close="closeModal"
-      @submit="handleSubmit"
-    />
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { subjects, leaderboardData } from '../data/leaderboardData'
+
+interface BuildingCard {
+  id: number
+  title: string
+  description: string
+  image: string
+  effects: {
+    type: string
+    value: string
+    icon: string
+  }[]
+}
+
+const router = useRouter()
+const subjectsScroll = ref(null)
+
+// 導覽列相關變數
+const isNotificationActive = ref(true)
+const showNotification = ref(false)
+const showSidebar = ref(false)
+const sidebarSection = ref(null)
+
+const players = ref(['玩家一', '玩家二', '玩家三', '玩家四', '玩家五'])
+const clues = ref([
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。'
+])
+
+const buildingCards = ref<BuildingCard[]>([
+  {
+    id: 1,
+    title: '火力發電廠',
+    description: '透過建設火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fc4de6010b3be41548b416bd62c8334da?format=webp&width=800',
+    effects: [
+      { type: '經濟', value: '+2', icon: '#87FF7C' },
+      { type: '健康', value: '-3', icon: '#FF7C7C' },
+      { type: '電力', value: '+3', icon: '#FFEE7C' }
+    ]
+  },
+  {
+    id: 2,
+    title: '堰塞湖',
+    description: '處理堰塞湖，花費了大量經濟及人力。\n但因為妥善處理，於後續的大雨中並無造成人口傷亡，同時糧食也順利收成。',
+    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fd74f6bb3a084490baaf984f7e1cc2e2d?format=webp&width=800',
+    effects: [
+      { type: '經濟', value: '-3', icon: '#87FF7C' },
+      { type: '人口', value: '-1', icon: '#7C7EFF' },
+      { type: '糧食', value: '+2', icon: '#FFC47C' }
+    ]
+  },
+  {
+    id: 3,
+    title: '金域建設',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Ff6d013861f294f4c90630637a06577e7?format=webp&width=800',
+    effects: [
+      { type: '經濟', value: '+2', icon: '#87FF7C' },
+      { type: '健康', value: '-3', icon: '#FF7C7C' },
+      { type: '電力', value: '+3', icon: '#FFEE7C' }
+    ]
+  },
+  {
+    id: 4,
+    title: '光域建設',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fd2932616865f401ebc49890ae648582f?format=webp&width=800',
+    effects: [
+      { type: '經濟', value: '+2', icon: '#87FF7C' },
+      { type: '健康', value: '-3', icon: '#FF7C7C' },
+      { type: '電力', value: '+3', icon: '#FFEE7C' }
+    ]
+  },
+  {
+    id: 5,
+    title: '水域建設',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F78a89b8524fd40f3a369c1ea1122945a?format=webp&width=800',
+    effects: [
+      { type: '經濟', value: '+2', icon: '#87FF7C' },
+      { type: '健康', value: '-3', icon: '#FF7C7C' },
+      { type: '電力', value: '+3', icon: '#FFEE7C' }
+    ]
+  },
+  {
+    id: 6,
+    title: '雷域建設',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F790594077862490d806b7169d2887e8b?format=webp&width=800',
+    effects: [
+      { type: '經濟', value: '+2', icon: '#87FF7C' },
+      { type: '健康', value: '-3', icon: '#FF7C7C' },
+      { type: '電力', value: '+3', icon: '#FFEE7C' }
+    ]
+  },
+  {
+    id: 7,
+    title: '木域建設',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F96ae0937fafa460c9863aa786605a37c?format=webp&width=800',
+    effects: [
+      { type: '經濟', value: '+2', icon: '#87FF7C' },
+      { type: '健康', value: '-3', icon: '#FF7C7C' },
+      { type: '電力', value: '+3', icon: '#FFEE7C' }
+    ]
+  },
+  {
+    id: 8,
+    title: '風域建設',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F2333e1220b3a4077a859f4cb9b5ec726?format=webp&width=800',
+    effects: [
+      { type: '經濟', value: '+2', icon: '#87FF7C' },
+      { type: '健康', value: '-3', icon: '#FF7C7C' },
+      { type: '電力', value: '+3', icon: '#FFEE7C' }
+    ]
+  },
+  {
+    id: 9,
+    title: '空域建設',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F36288cf9aad0457f901b18157254c94b?format=webp&width=800',
+    effects: [
+      { type: '經濟', value: '+2', icon: '#87FF7C' },
+      { type: '健康', value: '-3', icon: '#FF7C7C' },
+      { type: '電力', value: '+3', icon: '#FFEE7C' }
+    ]
+  }
+])
+
+let lastScrollPosition = 0
+
+// 當前選中的科目
+const currentSubject = ref(subjects[0])
+
+// 當前顯示的玩家列表
+const currentPlayers = computed(() => {
+  return leaderboardData[currentSubject.value.id] || []
+})
+
+// 選擇科目
+const selectSubject = (subject) => {
+  currentSubject.value = subject
+}
+
+// 導覽列相關函數
+function toggleNotification() {
+  isNotificationActive.value = !isNotificationActive.value
+  if (isNotificationActive.value) {
+    showNotification.value = true
+  } else {
+    showNotification.value = false
+  }
+}
+
+function closeNotification() {
+  showNotification.value = false
+}
+
+function toggleSidebar() {
+  showSidebar.value = !showSidebar.value
+  if (!showSidebar.value) {
+    sidebarSection.value = null
+    document.body.style.overflow = 'auto'
+    window.removeEventListener('scroll', handleSidebarScroll)
+  } else {
+    lastScrollPosition = window.scrollY
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('scroll', handleSidebarScroll)
+  }
+}
+
+function handleSidebarScroll() {
+  if (showSidebar.value && window.scrollY !== lastScrollPosition) {
+    showSidebar.value = false
+    sidebarSection.value = null
+    document.body.style.overflow = 'auto'
+    window.removeEventListener('scroll', handleSidebarScroll)
+  }
+}
+
+function toggleSection(section) {
+  if (sidebarSection.value === section) {
+    sidebarSection.value = null
+  } else {
+    sidebarSection.value = section
+  }
+}
+
+// 返回首頁
+const goBack = () => {
+  router.push('/')
+}
+</script>
 
 <style scoped>
 /* 導覽列相關樣式 */
@@ -804,35 +771,45 @@ const goBack = () => {
   opacity: 0;
 }
 
-.quiz-page {
+.leaderboard-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   flex-direction: column;
 }
 
-.subject-info {
+/* 頁面資訊 */
+.page-info {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 12px 20px;
+  gap: 8px;
+  padding: 16px 20px;
   color: white;
 }
 
-.subject-badge {
-  background-color: #10B981;
-  color: white;
-  padding: 8px 24px;
-  border-radius: 20px;
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.trophy-icon {
+  font-size: 24px;
+}
+
+.page-title {
   font-size: 16px;
   font-weight: 600;
+  margin: 0;
+  color: white;
 }
 
-.subject-progress {
-  font-size: 12px;
-  opacity: 0.9;
-  line-height: 1.3;
+.subtitle {
+  font-size: 13px;
+  opacity: 0.95;
+  margin: 0;
+  text-align: center;
 }
 
 /* 返回按鈕 */
@@ -861,43 +838,231 @@ const goBack = () => {
   font-size: 14px;
 }
 
-.cards-wrapper {
-  flex: 1;
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  gap: 20px;
-  padding: 0 20px 40px;
-}
-
-.cards-wrapper::-webkit-scrollbar {
-  display: none;
-}
-
-.subject-card {
-  flex: 0 0 calc(100% - 40px);
-  scroll-snap-align: center;
+/* 科目標籤容器 */
+.subjects-container {
   background: white;
   border-radius: 20px;
   padding: 20px;
-  overflow-y: auto;
-  max-height: calc(100vh - 230px);
-  scrollbar-width: thin; /* Firefox 細捲軸 */
-  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
-.subject-card::-webkit-scrollbar {
-  width: 6px;
+.subjects-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
-.subject-card::-webkit-scrollbar-track {
+.subjects-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.subjects-wrapper {
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #e5e7eb;
+  border-radius: 25px;
+  justify-content: space-evenly;
+}
+
+.subject-tab {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  border: none;
   background: transparent;
+  color: #4b5563;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+  white-space: nowrap;
 }
 
-.subject-card::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.5);
-  border-radius: 3px;
+.subject-tab:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.subject-tab.active {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 排行榜內容 */
+.leaderboard-content {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.leaderboard-content::-webkit-scrollbar {
+  display: none;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+/* 玩家卡片 */
+.player-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 15px;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.player-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.player-card.top-rank {
+  background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+  box-shadow: 0 4px 12px rgba(252, 211, 77, 0.3);
+}
+
+/* 排名徽章 */
+.rank-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 45px;
+  height: 45px;
+}
+
+.medal {
+  font-size: 32px;
+}
+
+.rank-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: bold;
+  color: #6b7280;
+}
+
+/* 玩家資訊 */
+.player-info {
+  flex: 1;
+}
+
+.player-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.player-stats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.stat-icon {
+  font-size: 14px;
+}
+
+.stat-label {
+  color: #6b7280;
+}
+
+.stat-value {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.stat-item:last-child .stat-value {
+  font-weight: normal;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .page-info {
+    padding: 12px 15px;
+  }
+
+  .trophy-icon {
+    font-size: 28px;
+  }
+
+  .page-title {
+    font-size: 18px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .subjects-container {
+    padding: 15px;
+  }
+
+  .player-card {
+    padding: 12px 15px;
+  }
+
+  .player-stats {
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .trophy-icon {
+    font-size: 24px;
+  }
+
+  .page-title {
+    font-size: 16px;
+  }
+
+  .subtitle {
+    font-size: 11px;
+  }
+
+  .player-name {
+    font-size: 14px;
+  }
+
+  .stat-item {
+    font-size: 12px;
+  }
+
+  .subject-tab {
+    padding: 8px 15px;
+    font-size: 13px;
+  }
 }
 
 /* 國家建設狀態相關樣式 */
