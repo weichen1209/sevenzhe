@@ -31,7 +31,7 @@ const stats = ref<StatIndicator[]>([
 const buildingCards = ref<BuildingCard[]>([
   {
     id: 1,
-    title: '�����力發電廠',
+    title: '火力發電廠',
     description: '透過建設火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fc4de6010b3be41548b416bd62c8334da?format=webp&width=800',
     effects: [
@@ -43,7 +43,7 @@ const buildingCards = ref<BuildingCard[]>([
   {
     id: 2,
     title: '堰塞湖',
-    description: '處理堰塞湖，花費了大量經濟及人力。\n但因為妥善處理，於後續的大雨中並無造���人口傷��，同時糧食也順利��成。',
+    description: '處理堰塞湖，花費了大量經濟及人力。\n但因為妥善處理，於後續的大雨中並無造成人口傷亡，同時糧食也順利收成。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fd74f6bb3a084490baaf984f7e1cc2e2d?format=webp&width=800',
     effects: [
       { type: '經濟', value: '-3', icon: '#87FF7C' },
@@ -65,7 +65,7 @@ const buildingCards = ref<BuildingCard[]>([
   {
     id: 4,
     title: '光域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室���體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fd2932616865f401ebc49890ae648582f?format=webp&width=800',
     effects: [
       { type: '經濟', value: '+2', icon: '#87FF7C' },
@@ -76,7 +76,7 @@ const buildingCards = ref<BuildingCard[]>([
   {
     id: 5,
     title: '水域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    description: '透過火��發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F78a89b8524fd40f3a369c1ea1122945a?format=webp&width=800',
     effects: [
       { type: '經濟', value: '+2', icon: '#87FF7C' },
@@ -87,7 +87,7 @@ const buildingCards = ref<BuildingCard[]>([
   {
     id: 6,
     title: '雷域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度���降。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F790594077862490d806b7169d2887e8b?format=webp&width=800',
     effects: [
       { type: '經濟', value: '+2', icon: '#87FF7C' },
@@ -98,7 +98,7 @@ const buildingCards = ref<BuildingCard[]>([
   {
     id: 7,
     title: '木域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    description: '透過火力發電廠，國家電力提升、就業機會增��進而帶動經濟。\n但由��燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F96ae0937fafa460c9863aa786605a37c?format=webp&width=800',
     effects: [
       { type: '經濟', value: '+2', icon: '#87FF7C' },
@@ -119,13 +119,13 @@ const buildingCards = ref<BuildingCard[]>([
   },
   {
     id: 9,
-    title: '空域���設',
+    title: '空域建設',
     description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F36288cf9aad0457f901b18157254c94b?format=webp&width=800',
     effects: [
       { type: '經濟', value: '+2', icon: '#87FF7C' },
       { type: '健康', value: '-3', icon: '#FF7C7C' },
-      { type: '電���', value: '+3', icon: '#FFEE7C' }
+      { type: '電力', value: '+3', icon: '#FFEE7C' }
     ]
   }
 ])
@@ -139,12 +139,12 @@ const sidebarSection = ref<string | null>(null)
 const players = ref(['玩家一', '玩家二', '玩家三', '玩家四', '玩家五'])
 const clues = ref([
   '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結���，使其在上岸前便消弭。',
   '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
   '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '���波塊能夠破壞海浪結���，使其在上岸前便消弭。',
   '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
-  '消波塊能夠破壞海浪結構，使其在上岸前便消弭����',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
   '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
   '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
   '消波塊能夠破壞海浪結構，使其在上岸前便消弭。'
@@ -401,33 +401,31 @@ onBeforeUnmount(() => {
         <h2 class="status-title">國家狀態</h2>
         
         <div class="status-content">
-          <div class="happiness-section">
-            <span class="happiness-label">國民幸福度</span>
-            <div class="happiness-values">
-              <span class="happiness-percent">{{ happiness }}%</span>
-              <div class="happiness-badge">
-                <span class="happiness-level">中等</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="vertical-divider"></div>
-
           <div class="stats-grid">
-            <div 
-              v-for="stat in stats" 
+            <div
+              v-for="stat in stats"
               :key="stat.label"
               class="stat-item"
             >
               <svg class="stat-circle" viewBox="0 0 40 40">
                 <text x="20" y="24.85" text-anchor="middle" class="stat-value">50</text>
                 <path d="M40 20C40 31.0457 31.0457 40 20 40C8.9543 40 0 31.0457 0 20C0 8.9543 8.9543 0 20 0C31.0457 0 40 8.9543 40 20ZM4 20C4 28.8366 11.1634 36 20 36C28.8366 36 36 28.8366 36 20C36 11.1634 28.8366 4 20 4C11.1634 4 4 11.1634 4 20Z" fill="#D9D9D9"/>
-                <path 
-                  d="M20 40C25.3043 40 30.3914 37.8929 34.1421 34.1421C37.8929 30.3914 40 25.3043 40 20C40 14.6957 37.8929 9.60859 34.1421 5.85786C30.3914 2.10714 25.3043 -6.32535e-08 20 0V4C24.2435 4 28.3131 5.68571 31.3137 8.68629C34.3143 11.6869 36 15.7565 36 20C36 24.2435 34.3143 28.3131 31.3137 31.3137C28.3131 34.3143 24.2435 36 20 36V40Z" 
+                <path
+                  d="M20 40C25.3043 40 30.3914 37.8929 34.1421 34.1421C37.8929 30.3914 40 25.3043 40 20C40 14.6957 37.8929 9.60859 34.1421 5.85786C30.3914 2.10714 25.3043 -6.32535e-08 20 0V4C24.2435 4 28.3131 5.68571 31.3137 8.68629C34.3143 11.6869 36 15.7565 36 20C36 24.2435 34.3143 28.3131 31.3137 31.3137C28.3131 34.3143 24.2435 36 20 36V40Z"
                   :fill="stat.color"
                 />
               </svg>
               <span class="stat-label">{{ stat.label }}</span>
+            </div>
+          </div>
+
+          <div class="horizontal-divider"></div>
+
+          <div class="happiness-section">
+            <span class="happiness-label">國民幸福度</span>
+            <span class="happiness-percent">{{ happiness }}%</span>
+            <div class="happiness-badge">
+              <span class="happiness-level">中等</span>
             </div>
           </div>
         </div>
@@ -436,11 +434,21 @@ onBeforeUnmount(() => {
       <div class="mode-cards-container">
         <div class="mode-cards">
           <div class="mode-card mode-card-quiz" @click="goToKnowledgeTree">
-            <img 
-              src="https://api.builder.io/api/v1/image/assets/TEMP/6cd950ef2e7f4c5db6ecb2613106561e026267ef?width=714" 
-              alt="搶答模式" 
-              class="mode-card-image"
-            />
+            <div class="mode-card-inner">
+              <div class="mode-icon-box">
+                <div class="mode-icon-bg">
+                  <img
+                    src="https://api.builder.io/api/v1/image/assets/TEMP/f2d996d90dba5a808fecb0535cf90a693c13fd96?width=390"
+                    alt="搶答模式"
+                    class="quiz-img"
+                  />
+                </div>
+              </div>
+              <div class="mode-text-content">
+                <h3 class="mode-title">搶答模式</h3>
+                <p class="mode-desc">競速搶答，獲得線索與金幣吧！</p>
+              </div>
+            </div>
           </div>
 
           <div class="mode-card mode-card-leaderboard" @click="goToLeaderboard">
@@ -536,8 +544,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1024px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .header-left {
@@ -828,7 +835,7 @@ onBeforeUnmount(() => {
 
 .status-card {
   width: 100%;
-  max-width: 682px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 29px 51px;
   border-radius: 20px;
@@ -849,15 +856,18 @@ onBeforeUnmount(() => {
 
 .status-content {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 30px;
+  gap: 40px;
 }
 
 .happiness-section {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   flex-shrink: 0;
+  justify-content: center;
 }
 
 .happiness-label {
@@ -866,12 +876,6 @@ onBeforeUnmount(() => {
   font-family: Arial, -apple-system, Roboto, Helvetica, sans-serif;
   font-size: 16px;
   line-height: 22px;
-}
-
-.happiness-values {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
 .happiness-percent {
@@ -899,19 +903,19 @@ onBeforeUnmount(() => {
   line-height: 22px;
 }
 
-.vertical-divider {
-  width: 1px;
-  height: 150px;
+.horizontal-divider {
+  width: 100%;
+  height: 1px;
   background: #E5E5E5;
-  flex-shrink: 0;
 }
 
 .stats-grid {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 60px;
   flex: 1;
   justify-content: center;
+  width: 100%;
 }
 
 .stat-item {
@@ -973,7 +977,8 @@ onBeforeUnmount(() => {
 }
 
 .mode-card-quiz {
-  overflow: hidden;
+  background: linear-gradient(135deg, #8B6EF2 0%, #CF6EF2 50%, #8B6EF2 100%);
+  padding: 24px 61px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1033,6 +1038,14 @@ onBeforeUnmount(() => {
   border-radius: 30px;
 }
 
+.quiz-img {
+  width: 195px;
+  height: 195px;
+  border-radius: 30px;
+  object-fit: cover;
+}
+
+.mode-text-content,
 .mode-text {
   display: flex;
   flex-direction: column;
@@ -1232,18 +1245,16 @@ onBeforeUnmount(() => {
   }
 
   .status-content {
-    flex-direction: column;
-    gap: 20px;
+    gap: 30px;
   }
 
-  .vertical-divider {
+  .horizontal-divider {
     width: 100%;
-    height: 1px;
   }
 
   .stats-grid {
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 40px;
   }
 
   .mode-cards {
