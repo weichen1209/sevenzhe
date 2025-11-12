@@ -65,7 +65,7 @@ const buildingCards = ref<BuildingCard[]>([
   {
     id: 4,
     title: '光域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室���體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fd2932616865f401ebc49890ae648582f?format=webp&width=800',
     effects: [
       { type: '經濟', value: '+2', icon: '#87FF7C' },
@@ -76,7 +76,7 @@ const buildingCards = ref<BuildingCard[]>([
   {
     id: 5,
     title: '水域建設',
-    description: '透過火��發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F78a89b8524fd40f3a369c1ea1122945a?format=webp&width=800',
     effects: [
       { type: '經濟', value: '+2', icon: '#87FF7C' },
@@ -87,7 +87,7 @@ const buildingCards = ref<BuildingCard[]>([
   {
     id: 6,
     title: '雷域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度���降。',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F790594077862490d806b7169d2887e8b?format=webp&width=800',
     effects: [
       { type: '經濟', value: '+2', icon: '#87FF7C' },
@@ -98,7 +98,7 @@ const buildingCards = ref<BuildingCard[]>([
   {
     id: 7,
     title: '木域建設',
-    description: '透過火力發電廠，國家電力提升、就業機會增��進而帶動經濟。\n但由��燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
+    description: '透過火力發電廠，國家電力提升、就業機會增加進而帶動經濟。\n但由於燃煤及燃氣發電廠釋放了大量溫室氣體，人民健康度下降，全球溫室效應加劇，全球人民健康度下降。',
     image: 'https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F96ae0937fafa460c9863aa786605a37c?format=webp&width=800',
     effects: [
       { type: '經濟', value: '+2', icon: '#87FF7C' },
@@ -305,9 +305,9 @@ onBeforeUnmount(() => {
             <div class="building-cards-wrapper">
               <div class="building-cards">
                 <div
-                  v-for="card in buildingCards"
+                  v-for="(card, index) in buildingCards"
                   :key="card.id"
-                  class="building-card"
+                  :class="['building-card', { 'building-card-locked': index > 0 }]"
                 >
                   <img :src="card.image" :alt="card.title" class="building-card-img" />
                   <div class="building-card-content">
@@ -446,7 +446,7 @@ onBeforeUnmount(() => {
               </div>
               <div class="mode-text-content">
                 <h3 class="mode-title">搶答模式</h3>
-                <p class="mode-desc">競速搶答，獲得線索與金幣吧！</p>
+                <p class="mode-desc">競���搶答，獲得線索與金幣吧！</p>
               </div>
             </div>
           </div>
@@ -1219,6 +1219,15 @@ onBeforeUnmount(() => {
   font-family: Arial, -apple-system, Roboto, Helvetica, sans-serif;
   font-size: clamp(10px, 2.5vw, 14px);
   line-height: 1.4;
+}
+
+.building-card-locked {
+  filter: grayscale(100%);
+  opacity: 0.8;
+}
+
+.building-card-locked .effect-value {
+  display: none;
 }
 
 @media (max-width: 768px) {
