@@ -28,52 +28,25 @@ app.post("/api/openai", async (req, res) => {
   try {
     const { message, story_question , story_answer } = req.body;
     // console.log('story_question:', story_question, 'story_answer:', story_answer);
-    // 組成 Responses API input，這裡保持簡單：系統提示 + 使用者訊息
-    const response = await client.responses.create({
+    // 使用標準的 Chat Completions API
+    const response = await client.chat.completions.create({
       model: "gpt-4o",
-      input: [
+      messages: [
         {
           role: "system",
-          content: [
-            {
-              type: "input_text",
-              text: `你是一個GM負責協助使用推斷，海龜湯底。只會回答「是」、「否」，湯面：${story_question}，湯底：${story_answer}。`
-            }
-          ]
+          content: `你是一個GM負責協助使用推斷，海龜湯底。只會回答「是」、「否」，湯面：${story_question}，湯底：${story_answer}。`
         },
         {
           role: "user",
-          content: [
-            {
-              type: "input_text",
-              text: message || ""
-            }
-          ]
+          content: message || ""
         }
       ],
       temperature: 0,
-      max_output_tokens: 512
+      max_tokens: 512
     });
 
-    // Responses API 的回傳結構可能有多種形式，嘗試抓出 output_text 或內容
-    let text = "";
-
-    // response.output 可能是 array of messages 或其他結構
-    if (Array.isArray(response.output)) {
-      for (const item of response.output) {
-        if (item.type === "output_text" && typeof item.text === "string") {
-          text += item.text;
-        } else if (item.type === "message" && Array.isArray(item.content)) {
-          for (const c of item.content) {
-            if (c.type === "output_text" && c.text) text += c.text;
-          }
-        }
-      }
-    } else if (typeof response.output_text === "string") {
-      text = response.output_text;
-    } else if (response.output && typeof response.output === "string") {
-      text = response.output;
-    }
+    // 從標準的 Chat Completions 響應中提取內容
+    const text = response.choices[0]?.message?.content || "";
 
     // 基本回傳格式
     res.json({ ok: true, text });

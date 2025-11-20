@@ -207,6 +207,12 @@ const messages = ref<Message[]>([
 
 const userInput = ref("");
 
+/* ---------------------------------------------
+   火域特殊功能：AI回應計數器
+--------------------------------------------- */
+const aiResponseCount = ref(0);
+const showDecisionModal = ref(false);
+
 async function sendMessage() {
   const text = userInput.value.trim();
   if (!text) return;
@@ -240,6 +246,14 @@ async function sendMessage() {
     } else {
       messages.value.push({ sender: "ai", text: data.ok ? (data.text || "（無回應）") : "伺服器回應錯誤" });
     }
+
+    // 火域特殊功能：AI回應兩次後觸發決策
+    if (data.ok) {
+      aiResponseCount.value++;
+      if (domainName === '火域' && aiResponseCount.value === 2) {
+        showDecisionModal.value = true;
+      }
+    }
   } catch (err) {
     console.error("call openai proxy failed:", err);
     // 替換 loading 或新增錯誤訊息
@@ -256,6 +270,17 @@ async function sendMessage() {
 /* 返回首頁 */
 function goBack() {
   router.back()
+}
+
+/* 處理火域決策 */
+function handleDecision(choice: '建立' | '不建立') {
+  console.log(`玩家選擇：${choice}火力發電廠`);
+
+  // 關閉彈出視窗
+  showDecisionModal.value = false;
+
+  // 返回主頁面（結束火域謎題）
+  router.push('/sea-turtle-soup');
 }
 </script>
 <template>
@@ -312,6 +337,17 @@ function goBack() {
       @toggle-sidebar="closeSidebar"
       @toggle-section="setSidebarSection"
     />
+
+    <!-- 火域決策彈出視窗 -->
+    <div v-if="showDecisionModal" class="modal-overlay" @click.self="() => {}">
+      <div class="decision-modal">
+        <h2 class="modal-title">國家決策：是否建立火力發電廠</h2>
+        <div class="modal-buttons">
+          <button class="btn-yes" @click="handleDecision('建立')">建立</button>
+          <button class="btn-no" @click="handleDecision('不建立')">不建立</button>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -445,5 +481,73 @@ function goBack() {
   color: white;
   cursor: pointer;
   font-size: 14px;
+}
+
+/* ---------------------------------------------
+   火域決策彈出視窗樣式
+--------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.decision-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.modal-buttons button {
+  padding: 14px 24px;
+  border: 2px solid;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  width: 100%;
+}
+
+.modal-buttons button:hover {
+  opacity: 0.8;
+}
+
+.btn-yes {
+  background: #c8e6c9;
+  color: #2e7d32;
+  border-color: #81c784;
+}
+
+.btn-no {
+  background: #ffcdd2;
+  color: #c62828;
+  border-color: #ef9a9a;
 }
 </style>
