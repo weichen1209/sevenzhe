@@ -107,5 +107,11 @@ app.post("/api/openai", async (req, res) => {
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
-  console.log(`OpenAI proxy running at http://localhost:${port}`);
+  console.log(`OpenAI proxy running at http://localhost:${port}`); //http://0,0,0,0:3001 //允許外部連線 
 });
+/* 
+npm run dev -- --host 前端開放外部連線
+listen改成host network IP 從僅接受localhost改成接受所有IP
+baseURL改成本地伺服器IP:APIport
+CROS允許外部請求
+*/ 
