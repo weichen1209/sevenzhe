@@ -4,6 +4,14 @@ import { useRoute, useRouter } from "vue-router";
 import Header from "../components/Header.vue";
 import Sidebar from "../components/Sidebar.vue";
 
+type BuildingCard = {
+  id: number
+  title: string
+  description: string
+  image: string
+  effects: { type: string; value: string; icon?: string }[]
+}
+
 const route = useRoute();
 const router = useRouter();
 
@@ -170,7 +178,7 @@ function setSidebarSection(s: string | null) {
 const domainName = route.params.domain as string;
 
 const domainStory: Record<string, string> = {
-  火域: `太平洋上的一座小島，近幾年因為大量推廣再生能源…為什麼？`,
+  火域: `太平洋上的一國家，過去電力充沛，居民生活品質良好。可在近幾年，沿海地區常常淹水停電，居民們深受其困擾，導致移民人數增加。為什麼？`,
   風域: `風域的傳說敘述：在一場巨大颶風後，居民發現某件奇怪的事…`,
   土域: `土域村莊近期突然出現大量地裂，村長卻說非常安全…`,
   光域: `光域國視覺科技非常發達，但某日所有光線突然被吸走…`,
@@ -181,7 +189,7 @@ const domainStory: Record<string, string> = {
   空域: `空域城市漂浮在雲上，卻突然開始慢慢下降…`
 };
 const domainAnswer: Record<string, string> = {
-  火域: `因為小島上的能源沒了`,
+  火域: `由於國家決定轉型為無核家園，將核能發電廠全數停止運作，改為於近海工業區的岸邊新建大量的火力發電廠。火力發電廠分為燃煤與燃氣，為求效率與經濟，建設多為燃煤火力發電廠。廠區短期內提供了大量電力與就業機會，刺激了區域經濟，但同時也增加了大量溫室氣體的排放。這些火力發電廠所排放的溫室氣體成了壓垮駱駝的最後一根稻草，大型冰山崩塌、北極凍土融化，封存的有機物因溫暖環境而被分解，釋放了大量甲烷，全球海平面上升速率於過去幾年成跳躍式增加，數十年間導致海平面上升2公尺，國家低海拔區域逐漸被淹沒，導致居民們逐漸撤離近海區。`,
   風域: `風域的傳說敘述：在一場巨大颶風後，居民發現某件奇怪的事…`,
   土域: `土域村莊近期突然出現大量地裂，村長卻說非常安全…`,
   光域: `光域國視覺科技非常發達，但某日所有光線突然被吸走…`,
@@ -199,6 +207,7 @@ const answerText = ref(domainAnswer[domainName] || "尚無答案資料");
 interface Message {
   sender: "player" | "ai";
   text: string;
+  isReveal?: boolean;
 }
 
 const messages = ref<Message[]>([
@@ -208,10 +217,9 @@ const messages = ref<Message[]>([
 const userInput = ref("");
 
 /* ---------------------------------------------
-   火域特殊功能：AI回應計數器
+   追蹤是否已答對
 --------------------------------------------- */
-const aiResponseCount = ref(0);
-const showDecisionModal = ref(false);
+const hasRevealed = ref(false);
 
 async function sendMessage() {
   const text = userInput.value.trim();
@@ -243,16 +251,25 @@ async function sendMessage() {
     const lastIndex = messages.value.length - 1;
     if (messages.value[lastIndex].sender === "ai" && messages.value[lastIndex].text === "思考中…") {
       messages.value[lastIndex].text = data.ok ? (data.text || "（無回應）") : "伺服器回應錯誤";
+      if (data.reveal_truth) {
+        messages.value[lastIndex].isReveal = true;
+      }
     } else {
-      messages.value.push({ sender: "ai", text: data.ok ? (data.text || "（無回應）") : "伺服器回應錯誤" });
+      messages.value.push({
+        sender: "ai",
+        text: data.ok ? (data.text || "（無回應）") : "伺服器回應錯誤",
+        isReveal: data.reveal_truth
+      });
     }
 
-    // 火域特殊功能：AI回應兩次後觸發決策
-    if (data.ok) {
-      aiResponseCount.value++;
-      if (domainName === '火域' && aiResponseCount.value === 2) {
-        showDecisionModal.value = true;
-      }
+    // 如果答對，顯示湯底並標記已揭曉
+    if (data.ok && data.reveal_truth && data.truth) {
+      hasRevealed.value = true;
+      messages.value.push({
+        sender: "ai",
+        text: `【湯底揭曉】\n${data.truth}`,
+        isReveal: true
+      });
     }
   } catch (err) {
     console.error("call openai proxy failed:", err);
@@ -267,20 +284,16 @@ async function sendMessage() {
 }
 
 
-/* 返回首頁 */
+/* 返回：若已答對則帶參數到 SeaTurtleSoup 顯示決策 */
 function goBack() {
-  router.back()
-}
-
-/* 處理火域決策 */
-function handleDecision(choice: '建立' | '不建立') {
-  console.log(`玩家選擇：${choice}火力發電廠`);
-
-  // 關閉彈出視窗
-  showDecisionModal.value = false;
-
-  // 返回主頁面（結束火域謎題）
-  router.push('/sea-turtle-soup');
+  if (hasRevealed.value) {
+    router.push({
+      path: '/sea-turtle-soup',
+      query: { showDecision: 'true', domain: domainName }
+    });
+  } else {
+    router.back();
+  }
 }
 </script>
 <template>
@@ -310,7 +323,7 @@ function handleDecision(choice: '建立' | '不建立') {
         class="chat-row"
         :class="msg.sender"
       >
-        <div class="chat-bubble">
+        <div class="chat-bubble" :class="{ 'reveal-bubble': msg.isReveal }">
           {{ msg.text }}
         </div>
       </div>
@@ -337,17 +350,6 @@ function handleDecision(choice: '建立' | '不建立') {
       @toggle-sidebar="closeSidebar"
       @toggle-section="setSidebarSection"
     />
-
-    <!-- 火域決策彈出視窗 -->
-    <div v-if="showDecisionModal" class="modal-overlay" @click.self="() => {}">
-      <div class="decision-modal">
-        <h2 class="modal-title">國家決策：是否建立火力發電廠</h2>
-        <div class="modal-buttons">
-          <button class="btn-yes" @click="handleDecision('建立')">建立</button>
-          <button class="btn-no" @click="handleDecision('不建立')">不建立</button>
-        </div>
-      </div>
-    </div>
 
   </div>
 </template>
@@ -450,6 +452,14 @@ function handleDecision(choice: '建立' | '不建立') {
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
+.chat-bubble.reveal-bubble {
+  background: linear-gradient(135deg, #ffd700, #ffed4a);
+  color: #5c4813;
+  border: 2px solid #f5c518;
+  font-weight: 500;
+  white-space: pre-line;
+}
+
 /* ---------------------------------------------
    底部輸入框
 --------------------------------------------- */
@@ -481,73 +491,5 @@ function handleDecision(choice: '建立' | '不建立') {
   color: white;
   cursor: pointer;
   font-size: 14px;
-}
-
-/* ---------------------------------------------
-   火域決策彈出視窗樣式
---------------------------------------------- */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.decision-modal {
-  background: white;
-  border-radius: 20px;
-  padding: 40px;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  text-align: center;
-}
-
-.modal-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 24px;
-  line-height: 1.5;
-}
-
-.modal-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-}
-
-.modal-buttons button {
-  padding: 14px 24px;
-  border: 2px solid;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  width: 100%;
-}
-
-.modal-buttons button:hover {
-  opacity: 0.8;
-}
-
-.btn-yes {
-  background: #c8e6c9;
-  color: #2e7d32;
-  border-color: #81c784;
-}
-
-.btn-no {
-  background: #ffcdd2;
-  color: #c62828;
-  border-color: #ef9a9a;
 }
 </style>

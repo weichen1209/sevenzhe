@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 
 interface StatIndicator {
@@ -27,6 +27,18 @@ const stats = ref<StatIndicator[]>([
   { label: '糧食', value: 50, color: '#FFC47C' },
   { label: '電力', value: 50, color: '#FFEE7C' }
 ])
+
+// 從 sessionStorage 讀取遊戲數值（關閉瀏覽器會自動重置）
+onMounted(() => {
+  const savedStats = sessionStorage.getItem('gameStats')
+  if (savedStats) {
+    const parsed = JSON.parse(savedStats)
+    stats.value = stats.value.map(stat => ({
+      ...stat,
+      value: parsed[stat.label] ?? stat.value
+    }))
+  }
+})
 
 const buildingCards = ref<BuildingCard[]>([
   {
@@ -130,7 +142,19 @@ const buildingCards = ref<BuildingCard[]>([
   }
 ])
 
-const happiness = ref(50)
+// 幸福度 = 五個數值的平均
+const happiness = computed(() => {
+  const total = stats.value.reduce((sum, stat) => sum + stat.value, 0)
+  return Math.round(total / stats.value.length)
+})
+
+// 等級判定
+const happinessLevel = computed(() => {
+  if (happiness.value < 35) return '未開發國家'
+  if (happiness.value <= 70) return '開發中國家'
+  return '已開發國家'
+})
+
 const isNotificationActive = ref(true)
 const showNotification = ref(false)
 const showSidebar = ref(false)
@@ -408,7 +432,7 @@ onBeforeUnmount(() => {
               class="stat-item"
             >
               <svg class="stat-circle" viewBox="0 0 40 40">
-                <text x="20" y="24.85" text-anchor="middle" class="stat-value">50</text>
+                <text x="20" y="24.85" text-anchor="middle" class="stat-value">{{ stat.value }}</text>
                 <path d="M40 20C40 31.0457 31.0457 40 20 40C8.9543 40 0 31.0457 0 20C0 8.9543 8.9543 0 20 0C31.0457 0 40 8.9543 40 20ZM4 20C4 28.8366 11.1634 36 20 36C28.8366 36 36 28.8366 36 20C36 11.1634 28.8366 4 20 4C11.1634 4 4 11.1634 4 20Z" fill="#D9D9D9"/>
                 <path
                   d="M20 40C25.3043 40 30.3914 37.8929 34.1421 34.1421C37.8929 30.3914 40 25.3043 40 20C40 14.6957 37.8929 9.60859 34.1421 5.85786C30.3914 2.10714 25.3043 -6.32535e-08 20 0V4C24.2435 4 28.3131 5.68571 31.3137 8.68629C34.3143 11.6869 36 15.7565 36 20C36 24.2435 34.3143 28.3131 31.3137 31.3137C28.3131 34.3143 24.2435 36 20 36V40Z"
@@ -425,7 +449,7 @@ onBeforeUnmount(() => {
             <span class="happiness-label">國民幸福度</span>
             <span class="happiness-percent">{{ happiness }}%</span>
             <div class="happiness-badge">
-              <span class="happiness-level">中等</span>
+              <span class="happiness-level">{{ happinessLevel }}</span>
             </div>
           </div>
         </div>

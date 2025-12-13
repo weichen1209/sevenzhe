@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import Header from '../components/Header.vue'
 import Sidebar from '../components/Sidebar.vue'
 
@@ -15,6 +15,21 @@ type BuildingCard = {
 }
 
 const router = useRouter()
+const route = useRoute()
+
+// 決策彈窗狀態
+const showDecisionModal = ref(false)
+const decisionDomain = ref('')
+
+// 檢查是否從 ChatRoom 答對後返回
+onMounted(() => {
+  if (route.query.showDecision === 'true' && route.query.domain) {
+    decisionDomain.value = route.query.domain as string
+    showDecisionModal.value = true
+    // 清除 query 參數
+    router.replace({ path: '/sea-turtle-soup' })
+  }
+})
 
 const domains = ref<Domain[]>([
   { name: '火域', color: '#FF6B6B', image: '火域.png' },
@@ -219,6 +234,30 @@ function closeSidebar() {
 function setSidebarSection(s: string | null) {
   sidebarSection.value = s
 }
+
+// 處理決策選擇
+function handleDecision(choice: '建立' | '不建立') {
+  console.log(`[${decisionDomain.value}] 玩家選擇：${choice}`)
+
+  // 根據選擇計算數值變化
+  let effects: { 經濟: number; 健康: number; 電力: number }
+  if (choice === '建立') {
+    effects = { 經濟: 1, 健康: -2, 電力: 3 }
+  } else {
+    effects = { 經濟: 1, 健康: 1, 電力: 2 }
+  }
+
+  // 從 sessionStorage 讀取現有數值，並更新
+  const currentStats = JSON.parse(sessionStorage.getItem('gameStats') || '{"經濟":50,"人口":50,"健康":50,"糧食":50,"電力":50}')
+  currentStats.經濟 += effects.經濟
+  currentStats.健康 += effects.健康
+  currentStats.電力 += effects.電力
+
+  // 儲存回 sessionStorage（關閉瀏覽器會自動重置）
+  sessionStorage.setItem('gameStats', JSON.stringify(currentStats))
+
+  showDecisionModal.value = false
+}
 </script>
 
 <template>
@@ -337,6 +376,18 @@ function setSidebarSection(s: string | null) {
     @toggle-sidebar="closeSidebar"
     @toggle-section="setSidebarSection"
   />
+
+    <!-- 決策彈出視窗 -->
+    <div v-if="showDecisionModal" class="decision-modal-overlay">
+      <div class="decision-modal">
+        <h2 class="decision-modal-title">{{ decisionDomain }} - 國家決策</h2>
+        <p class="decision-modal-subtitle">是否建立火力發電廠？</p>
+        <div class="decision-modal-buttons">
+          <button class="decision-btn-yes" @click="handleDecision('建立')">建立</button>
+          <button class="decision-btn-no" @click="handleDecision('不建立')">不建立</button>
+        </div>
+      </div>
+    </div>
     </div>
 </template>
 
@@ -1217,5 +1268,76 @@ function setSidebarSection(s: string | null) {
   .stats-pill-item {
     flex: 1 0 20%;
   }
+}
+
+/* 決策彈出視窗樣式 */
+.decision-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.decision-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.decision-modal-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px;
+}
+
+.decision-modal-subtitle {
+  font-size: 16px;
+  color: #666;
+  margin: 0 0 24px;
+}
+
+.decision-modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.decision-modal-buttons button {
+  padding: 14px 24px;
+  border: 2px solid;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  width: 100%;
+}
+
+.decision-modal-buttons button:hover {
+  opacity: 0.8;
+}
+
+.decision-btn-yes {
+  background: #c8e6c9;
+  color: #2e7d32;
+  border-color: #81c784;
+}
+
+.decision-btn-no {
+  background: #ffcdd2;
+  color: #c62828;
+  border-color: #ef9a9a;
 }
 </style>
