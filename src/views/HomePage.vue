@@ -446,7 +446,7 @@ onBeforeUnmount(() => {
           <div class="horizontal-divider"></div>
 
           <div class="happiness-section">
-            <span class="happiness-label">國民幸福度</span>
+            <span class="happiness-label">國家發展指數</span>
             <span class="happiness-percent">{{ happiness }}%</span>
             <div class="happiness-badge">
               <span class="happiness-level">{{ happinessLevel }}</span>
