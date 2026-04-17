@@ -3,6 +3,7 @@ import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Header from "../components/Header.vue";
 import Sidebar from "../components/Sidebar.vue";
+import { callOpenAIChat } from "../api/index.js";
 
 type BuildingCard = {
   id: number
@@ -19,15 +20,15 @@ const router = useRouter();
    動態背景：依照 domain 切換
 --------------------------------------------- */
 const domainBackgrounds: Record<string, string> = {
-  火域: "https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fd2932616865f401ebc49890ae648582f?format=webp&width=800",
-  風域: "https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fd74f6bb3a084490baaf984f7e1cc2e2d?format=webp&width=800",
-  土域: "https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Ff6d013861f294f4c90630637a06577e7?format=webp&width=800",
-  光域: "https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fd2932616865f401ebc49890ae648582f?format=webp&width=800",
-  雷域: "https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F790594077862490d806b7169d2887e8b?format=webp&width=800",
-  木域: "https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F96ae0937fafa460c9863aa786605a37c?format=webp&width=800",
-  金域: "https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F2333e1220b3a4077a859f4cb9b5ec726?format=webp&width=800",
-  水域: "https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2F78a89b8524fd40f3a369c1ea1122945a?format=webp&width=800",
-  空域: "https://cdn.builder.io/api/v1/image/assets%2F07579a4373634a9cae301a29b729ecef%2Fa29bfe.png"
+  火域: "/海龜湯各域圖/火域.png",
+  風域: "/海龜湯各域圖/風域.png",
+  土域: "/海龜湯各域圖/土域.png",
+  光域: "/海龜湯各域圖/光域.png",
+  雷域: "/海龜湯各域圖/雷域.png",
+  木域: "/海龜湯各域圖/木域.png",
+  金域: "/海龜湯各域圖/金域.png",
+  水域: "/海龜湯各域圖/水域.png",
+  空域: "/海龜湯各域圖/空域.png"
 };
 
 const bgUrl = computed(() => {
@@ -37,7 +38,7 @@ const bgUrl = computed(() => {
 
 /* 背景套用（跟你原本寫法一致） */
 const pageStyle = computed(() => ({
-  background: `url(${bgUrl.value}) no-repeat center bottom`,
+  background: `url(${bgUrl.value}) no-repeat center center`,
   backgroundSize: "cover"
 }));
 
@@ -233,19 +234,14 @@ async function sendMessage() {
   messages.value.push({ sender: "ai", text: "思考中…" });
 
   try {
-    // 呼叫後端 proxy
-    const resp = await fetch("/api/openai", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: text,
-        // 可選：把對話歷史送給後端以做上下文（視需求而定）
-        story_question : storyText.value,
-        story_answer : answerText.value || ""
-      })
-    });
-
-    const data = await resp.json();
+    // 呼叫後端 API
+    const response = await callOpenAIChat(
+      text,
+      storyText.value,
+      answerText.value || ""
+    );
+    
+    const data = response.data;
 
     // 取代剛剛的 loading 訊息為真實回應
     const lastIndex = messages.value.length - 1;

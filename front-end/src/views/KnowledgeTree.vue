@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import Header from '../components/Header.vue'
 import PathLayout from '../components/quiz/PathLayout.vue'
 import QuestionCard from '../components/quiz/QuestionCard.vue'
 import QuestionModal from '../components/quiz/QuestionModal.vue'
@@ -22,17 +23,18 @@ const router = useRouter()
 const currentSubjectIndex = ref(0)
 const currentSubject = ref(subjects[0])
 const showModal = ref(false)
-const selectedQuestion = ref(null)
+const selectedQuestion = ref<any>(null)
 const resultState = ref('idle') // 'idle', 'correct', 'wrong'
-const subjectCards = ref([])
+const subjectCards = ref<any[]>([])
 
 // 導覽列相關變數
 const isNotificationActive = ref(true)
 const showNotification = ref(false)
 const showSidebar = ref(false)
-const sidebarSection = ref(null)
+const sidebarSection = ref<string | null>(null)
 
 const players = ref(['玩家一', '玩家二', '玩家三', '玩家四', '玩家五'])
+const groupMembers = ref<any[]>([])
 const clues = ref([
   '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
   '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
@@ -151,17 +153,17 @@ const buildingCards = ref<BuildingCard[]>([
 let lastScrollPosition = 0
 
 // 滾動到科目卡片底部
-const scrollToBottom = (index) => {
+const scrollToBottom = (index: number) => {
   nextTick(() => {
-    const card = subjectCards.value[index]
+    const card = subjectCards.value[index] as HTMLElement | undefined
     if (card) {
       card.scrollTop = card.scrollHeight - card.clientHeight
     }
   })
 }
 
-const handleScroll = (event) => {
-  const container = event.target
+const handleScroll = (event: Event) => {
+  const container = event.target as HTMLElement
   const index = Math.round(container.scrollLeft / container.clientWidth)
   if (index !== currentSubjectIndex.value && index < subjects.length) {
     currentSubjectIndex.value = index
@@ -176,7 +178,7 @@ onMounted(() => {
   scrollToBottom(0)
 })
 
-const openModal = (question) => {
+const openModal = (question: any) => {
   selectedQuestion.value = question
   showModal.value = true
   resultState.value = 'idle'
@@ -190,12 +192,12 @@ const closeModal = () => {
   }, 300) // 等待動畫完成
 }
 
-const normalizeAnswer = (text) => {
+const normalizeAnswer = (text: string) => {
   // 移除空格、轉小寫，用於比對答案
   return text.toLowerCase().replace(/\s+/g, '')
 }
 
-const handleSubmit = (userAnswer) => {
+const handleSubmit = (userAnswer: string) => {
   if (!selectedQuestion.value) return
 
   const correctAnswer = selectedQuestion.value.answer
@@ -215,6 +217,11 @@ const handleSubmit = (userAnswer) => {
     resultState.value = 'wrong'
   }
 }
+
+// 從 localStorage 讀取學生名字
+const studentName = computed(() => {
+  return localStorage.getItem('student_name') || '玩家'
+})
 
 // 導覽列相關函數
 function toggleNotification() {
@@ -252,11 +259,38 @@ function handleSidebarScroll() {
   }
 }
 
-function toggleSection(section) {
+function toggleSection(section: string) {
   if (sidebarSection.value === section) {
     sidebarSection.value = null
   } else {
     sidebarSection.value = section
+    // 如果切換到組員，加載同組成員
+    if (section === 'group') {
+      loadGroupMembers()
+    }
+  }
+}
+
+async function loadGroupMembers() {
+  try {
+    const groupId = localStorage.getItem('group_id')
+    const studentId = localStorage.getItem('student_id')
+
+    if (!groupId) {
+      console.error('Group ID not found in localStorage')
+      return
+    }
+
+    const response = await fetch(`/api/group-members/?group_id=${groupId}&student_id=${studentId}`)
+    const data = await response.json()
+
+    if (data.ok) {
+      groupMembers.value = data.data
+    } else {
+      console.error('Failed to load group members:', data.error)
+    }
+  } catch (error) {
+    console.error('Error loading group members:', error)
   }
 }
 
@@ -264,24 +298,32 @@ function toggleSection(section) {
 const goBack = () => {
   router.push('/')
 }
+
+function handleLogout() {
+  // 清除本地存儲的用戶數據
+  localStorage.removeItem('student_id')
+  localStorage.removeItem('student_name')
+  localStorage.removeItem('group_id')
+  localStorage.removeItem('account')
+  
+  // 重定向到登入頁面
+  router.push('/login')
+}
 </script>
 
 <template>
   <div class="quiz-page" :class="{ 'sidebar-open': showSidebar }">
     <!-- Sidebar Overlay -->
-    <transition name="fade">
+    <transition name="slide-sidebar">
       <div v-if="showSidebar" class="sidebar-overlay" @click="toggleSidebar">
         <div class="sidebar" @click.stop>
           <div class="sidebar-header">
-            <div class="sidebar-user">
-              <button class="sidebar-close-btn" aria-label="Close menu" @click="toggleSidebar">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z" fill="#333333"/>
-                </svg>
-              </button>
-              <span class="sidebar-username">玩家一</span>
-            </div>
-            <div class="sidebar-divider"></div>
+            <button class="sidebar-close-btn" aria-label="Close menu" @click="toggleSidebar">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z" fill="#333333"/>
+              </svg>
+            </button>
+            <span class="sidebar-player-name">{{ studentName }}</span>
           </div>
 
           <div class="sidebar-menu">
@@ -315,7 +357,7 @@ const goBack = () => {
             </div>
             <div class="menu-divider"></div>
 
-            <button class="menu-item">
+            <button class="menu-item logout-btn" @click="handleLogout">
               登出
             </button>
           </div>
@@ -325,11 +367,11 @@ const goBack = () => {
           <div v-if="sidebarSection === 'group'" class="section-content">
             <div class="player-list">
               <button
-                v-for="player in players"
-                :key="player"
+                v-for="member in groupMembers"
+                :key="member.student_id"
                 class="player-btn"
               >
-                {{ player }}
+                {{ member.student_name }}
               </button>
             </div>
           </div>
@@ -408,24 +450,7 @@ const goBack = () => {
     </transition>
 
     <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <div class="header-left">
-          <button class="icon-btn" aria-label="Menu" @click="toggleSidebar">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z" fill="black"/>
-            </svg>
-          </button>
-          <h1 class="header-title">破解安洛克</h1>
-        </div>
-
-        <button class="icon-btn" aria-label="Notifications" @click="toggleNotification">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M22 20H2V18H3V11.031C3 6.043 7.03 2 12 2C16.97 2 21 6.043 21 11.031V18H22V20ZM5 18H19V11.031C19 7.148 15.866 4 12 4C8.134 4 5 7.148 5 11.031V18ZM9.5 21H14.5C14.5 21.663 14.2366 22.2989 13.7678 22.7678C13.2989 23.2366 12.663 23.5 12 23.5C11.337 23.5 10.7011 23.2366 10.2322 22.7678C9.76339 22.2989 9.5 21.663 9.5 21Z" :fill="isNotificationActive ? '#FF4C4C' : 'black'"/>
-          </svg>
-        </button>
-      </div>
-    </header>
+    <Header @toggle-sidebar="toggleSidebar" @toggle-notification="toggleNotification" :isNotificationActive="isNotificationActive" />
 
     <!-- Notification Panel -->
     <transition name="fade">
@@ -474,7 +499,7 @@ const goBack = () => {
           @question-click="openModal"
         >
           <template #question="{ question }">
-            <QuestionCard :question="question" />
+            <QuestionCard :question="(question as any)" />
           </template>
         </PathLayout>
       </div>
@@ -601,7 +626,7 @@ const goBack = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.5);
   z-index: 200;
   display: flex;
 }
@@ -621,9 +646,13 @@ const goBack = () => {
 
 .sidebar-header {
   padding: 30px 0 5px;
+  padding-left: 20px;
+  padding-right: 20px;
   display: flex;
-  flex-direction: column;
-  gap: 37px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
 }
 
 .sidebar-user {
@@ -656,9 +685,20 @@ const goBack = () => {
 }
 
 .sidebar-divider {
-  width: 100%;
-  height: 1px;
+  width: 1px;
+  height: 24px;
   background: #EEE;
+  margin: 0 20px;
+}
+
+.sidebar-player-name {
+  color: #333;
+  font-family: Arial, -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 24px;
+  flex: 1;
+  text-align: center;
 }
 
 .sidebar-menu {
@@ -703,6 +743,14 @@ const goBack = () => {
   height: 1px;
   background: #DDD;
   margin: 0 -50px;
+}
+
+.logout-btn {
+  background: none;
+  color: #ff6b6b !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 .section-content {
@@ -788,6 +836,35 @@ const goBack = () => {
 
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
+}
+
+.slide-sidebar-enter-active {
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-sidebar-leave-active {
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-sidebar-enter-active .sidebar {
+  transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-sidebar-leave-active .sidebar {
+  transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-sidebar-enter-from {
+  opacity: 0;
+}
+
+.slide-sidebar-leave-to {
+  opacity: 0;
+}
+
+.slide-sidebar-enter-from .sidebar,
+.slide-sidebar-leave-to .sidebar {
+  transform: translateX(-100%);
 }
 
 .slide-content-enter-active, .slide-content-leave-active {

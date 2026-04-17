@@ -32,24 +32,25 @@ onMounted(() => {
 })
 
 const domains = ref<Domain[]>([
-  { name: '火域', color: '#FF6B6B', image: '火域.png' },
-  { name: '風域', color: '#A8D8EA', image: '風域.png' },
-  { name: '土域', color: '#AA7E5A', image: '土域.png' },
-  { name: '光域', color: '#FFE66D', image: '光域.png' },
-  { name: '雷域', color: '#B8E994', image: '雷域.png' },
-  { name: '木域', color: '#6BCF7F', image: '木域.png' },
-  { name: '金域', color: '#FFD93D', image: '金域.png' },
-  { name: '水域', color: '#4FACFE', image: '水域.png' },
-  { name: '空域', color: '#A29BFE', image: '空域.png' }
+  { name: '風域', color: '#A8D8EA', image: '/海龜湯選擇/風域.png' },      // 第1個 - 左上
+  { name: '火域', color: '#FF6B6B', image: '/海龜湯選擇/火域.png' },      // 第2個
+  { name: '土域', color: '#AA7E5A', image: '/海龜湯選擇/土域.png' },      // 第3個 - 右上
+  { name: '木域', color: '#6BCF7F', image: '/海龜湯選擇/木域.png' },      // 第4個 - 左中
+  { name: '空域', color: '#A29BFE', image: '/海龜湯選擇/空域.png' },      // 第5個 - 中中
+  { name: '金域', color: '#FFD93D', image: '/海龜湯選擇/金域.png' },      // 第6個 - 右中
+  { name: '雷域', color: '#B8E994', image: '/海龜湯選擇/雷域.png' },      // 第7個 - 左下
+  { name: '水域', color: '#4FACFE', image: '/海龜湯選擇/水域.png' },      // 第8個
+  { name: '光域', color: '#FFE66D', image: '/海龜湯選擇/光域.png' }       // 第9個 - 右下
 ])
 
 const centerDomain = computed(() => {
-  return domains.value.find((d) => d.name === '空域') || { name: '空域', color: '#A29BFE', image: '空域.png' }
+  return null  // 不再使用中心域
 })
 
-const surroundingDomains = computed(() => domains.value.filter((d) => d.name !== centerDomain.value.name))
+const surroundingDomains = computed(() => domains.value)  // 所有域
 
 const selectedDomain = ref<string | null>(null)
+const hoveredDomain = ref<string | null>(null)
 const progressText = ref('0 / 9')
 const cluesFoundText = ref('0 / 40')
 const showCluesModal = ref(false)
@@ -176,36 +177,25 @@ const isNotificationActive = ref(true)
 const showNotification = ref(true)
 
 function getDomainPosition(index: number) {
-  const total = surroundingDomains.value.length
-  if (total === 0) return { left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }
-  const step = 360 / total
-  const angleDeg = index * step - 90 // start from top
-  const angle = (angleDeg * Math.PI) / 180
-  const radius = 40
-  const center = 50
-  const x = center + radius * Math.cos(angle)
-  const y = center + radius * Math.sin(angle)
-  return { left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }
+  // 3x3 網格佈局（9個域）
+  // 0 1 2
+  // 3 4 5
+  // 6 7 8
+  const row = Math.floor(index / 3)
+  const col = index % 3
+  const colPercent = col === 0 ? 25 : col === 1 ? 50 : 75
+  const rowPercent = row === 0 ? 25 : row === 1 ? 50 : 75
+  return { left: `${colPercent}%`, top: `${rowPercent}%`, transform: 'translate(-50%, -50%)' }
 }
 
 function getLineEndX(index: number) {
-  const total = surroundingDomains.value.length
-  if (total === 0) return 100
-  const step = 360 / total
-  const angleDeg = index * step - 90
-  const angle = (angleDeg * Math.PI) / 180
-  const radius = 40
-  return 100 + radius * Math.cos(angle)
+  // 不再使用連線
+  return 100
 }
 
 function getLineEndY(index: number) {
-  const total = surroundingDomains.value.length
-  if (total === 0) return 100
-  const step = 360 / total
-  const angleDeg = index * step - 90
-  const angle = (angleDeg * Math.PI) / 180
-  const radius = 40
-  return 100 + radius * Math.sin(angle)
+  // 不再使用連線
+  return 100
 }
 
 function selectDomain(domain: Domain) {
@@ -265,57 +255,43 @@ function handleDecision(choice: '建立' | '不建立') {
     <Header @toggle-sidebar="toggleSidebar" />
 
     <main class="main-content seaturtle-main">
-      <div class="seaturtle-topbar">
-        <button class="seaturtle-back-btn" @click="handleBack">
-          <svg class="seaturtle-back-icon" viewBox="0 0 24 24" fill="none">
-            <path d="M7.828 10.9999L13.192 5.63592L11.778 4.22192L4 11.9999L11.778 19.7779L13.192 18.3639L7.828 12.9999H20V10.9999H7.828Z" fill="white" />
-          </svg>
-          <span>返回</span>
-        </button>
-
-        <div class="seaturtle-title-block">
-          <div class="seaturtle-title-row">
-            <svg class="seaturtle-title-icon" viewBox="0 0 19 19" fill="none">
-              <path d="M4.9362 5.10879C3.92686 6.15639 3.30893 7.51953 3.18628 8.96909C3.06363 10.4186 3.44373 11.8662 4.2627 13.0685C5.08167 14.2708 6.28957 15.1546 7.68338 15.5711C9.07718 15.9877 10.5719 15.9118 11.9163 15.3561C12.0074 14.7624 11.8079 14.1924 11.7263 13.9929C11.5442 13.5495 10.9442 12.7919 9.9427 11.7414C9.67512 11.4603 9.69254 11.2442 9.78833 10.6037L9.79862 10.5317C9.86354 10.0931 9.97279 9.83345 11.4492 9.59912C12.1997 9.48037 12.3969 9.77962 12.67 10.1952L12.7618 10.3314C13.0215 10.7114 13.2139 10.7985 13.5044 10.9299C13.635 10.9893 13.7973 11.0645 14.015 11.1872C14.5312 11.4825 14.5312 11.8158 14.5312 12.5457V12.6288C14.5312 12.9384 14.5011 13.2107 14.4536 13.4474C15.0611 12.685 15.4845 11.7926 15.6907 10.8398C15.8969 9.88701 15.8804 8.89946 15.6426 7.95406C15.4047 7.00866 14.9519 6.13091 14.3193 5.38915C13.6867 4.64738 12.8915 4.06162 11.9955 3.67745C11.5577 3.97275 10.9568 4.39154 10.747 4.67891C10.6402 4.82537 10.4882 5.57508 9.99495 5.63683C9.8667 5.65266 9.69333 5.64158 9.50966 5.6297C9.01725 5.59804 8.34433 5.5545 8.129 6.13954C7.99204 6.51004 7.96829 7.51704 8.41083 8.03954C8.48208 8.12266 8.49554 8.27704 8.44725 8.45041C8.38391 8.67762 8.25645 8.81616 8.21608 8.84466C8.14008 8.80033 7.98808 8.62379 7.88437 8.50425C7.63658 8.21529 7.32625 7.85508 6.92566 7.74425C6.78 7.70387 6.62008 7.67062 6.46412 7.63737C6.0295 7.54633 5.53787 7.44262 5.42308 7.19879C5.33916 7.01987 5.33995 6.77366 5.33995 6.514C5.33995 6.18387 5.33995 5.811 5.17845 5.4492C5.12231 5.32009 5.03979 5.20414 4.9362 5.10879ZM9.50016 17.4168C5.12779 17.4168 1.5835 13.8725 1.5835 9.50016C1.5835 5.12779 5.12779 1.5835 9.50016 1.5835C13.8725 1.5835 17.4168 5.12779 17.4168 9.50016C17.4168 13.8725 13.8725 17.4168 9.50016 17.4168Z" />
-            </svg>
-            <h2>海龜湯</h2>
-          </div>
-        </div>
-      </div>
+      <!-- 返回按鈕 -->
+      <button class="seaturtle-back-btn" @click="handleBack">
+        <svg class="seaturtle-back-icon" viewBox="0 0 24 24" fill="none">
+          <path d="M7.828 10.9999L13.192 5.63592L11.778 4.22192L4 11.9999L11.778 19.7779L13.192 18.3639L7.828 12.9999H20V10.9999H7.828Z" fill="white" />
+        </svg>
+        <span>返回</span>
+      </button>
 
       <div class="seaturtle-grid">
         <div class="wheel-card">
+          <!-- Logo at top-left -->
+          <div class="turtle-logo-box">
+            <svg class="turtle-logo-icon" viewBox="0 0 19 19" fill="none">
+              <path d="M4.9362 5.10879C3.92686 6.15639 3.30893 7.51953 3.18628 8.96909C3.06363 10.4186 3.44373 11.8662 4.2627 13.0685C5.08167 14.2708 6.28957 15.1546 7.68338 15.5711C9.07718 15.9877 10.5719 15.9118 11.9163 15.3561C12.0074 14.7624 11.8079 14.1924 11.7263 13.9929C11.5442 13.5495 10.9442 12.7919 9.9427 11.7414C9.67512 11.4603 9.69254 11.2442 9.78833 10.6037L9.79862 10.5317C9.86354 10.0931 9.97279 9.83345 11.4492 9.59912C12.1997 9.48037 12.3969 9.77962 12.67 10.1952L12.7618 10.3314C13.0215 10.7114 13.2139 10.7985 13.5044 10.9299C13.635 10.9893 13.7973 11.0645 14.015 11.1872C14.5312 11.4825 14.5312 11.8158 14.5312 12.5457V12.6288C14.5312 12.9384 14.5011 13.2107 14.4536 13.4474C15.0611 12.685 15.4845 11.7926 15.6907 10.8398C15.8969 9.88701 15.8804 8.89946 15.6426 7.95406C15.4047 7.00866 14.9519 6.13091 14.3193 5.38915C13.6867 4.64738 12.8915 4.06162 11.9955 3.67745C11.5577 3.97275 10.9568 4.39154 10.747 4.67891C10.6402 4.82537 10.4882 5.57508 9.99495 5.63683C9.8667 5.65266 9.69333 5.64158 9.50966 5.6297C9.01725 5.59804 8.34433 5.5545 8.129 6.13954C7.99204 6.51004 7.96829 7.51704 8.41083 8.03954C8.48208 8.12266 8.49554 8.27704 8.44725 8.45041C8.38391 8.67762 8.25645 8.81616 8.21608 8.84466C8.14008 8.80033 7.98808 8.62379 7.88437 8.50425C7.63658 8.21529 7.32625 7.85508 6.92566 7.74425C6.78 7.70387 6.62008 7.67062 6.46412 7.63737C6.0295 7.54633 5.53787 7.44262 5.42308 7.19879C5.33916 7.01987 5.33995 6.77366 5.33995 6.514C5.33995 6.18387 5.33995 5.811 5.17845 5.4492C5.12231 5.32009 5.03979 5.20414 4.9362 5.10879ZM9.50016 17.4168C5.12779 17.4168 1.5835 13.8725 1.5835 9.50016C1.5835 5.12779 5.12779 1.5835 9.50016 1.5835C13.8725 1.5835 17.4168 5.12779 17.4168 9.50016C17.4168 13.8725 13.8725 17.4168 9.50016 17.4168Z" />
+            </svg>
+            <span class="turtle-logo-text">海龜湯</span>
+          </div>
+
           <div class="wheel-inner">
             <div class="wheel-container">
               <div class="wheel-lines">
-                <svg viewBox="0 0 200 200" width="100%" height="100%">
-                  <circle cx="100" cy="100" r="40" fill="rgba(255,255,255,0.2)" />
-                  <g>
-                    <line v-for="(d, i) in surroundingDomains" :key="i" x1="100" y1="100" :x2="getLineEndX(i)" :y2="getLineEndY(i)" stroke="rgba(255,255,255,0.3)" />
-                  </g>
-                </svg>
-
-                <button class="domain-center" @click="selectDomain(centerDomain)">
-                  <div class="center-circle">
-                    <img v-if="centerDomain.image" :src="centerDomain.image" :alt="centerDomain.name" class="domain-img" />
-                    <div v-else :style="{ background: centerDomain.color }" class="center-fallback"></div>
-                  </div>
-                  <div class="domain-label">{{ centerDomain.name }}</div>
-                </button>
-
                 <button
                   v-for="(domain, idx) in surroundingDomains"
-                  :key="domain.name"
+                  :key="`${domain.name}-${idx}`"
                   class="domain-item"
-                  :class="{ 'domain-selected': selectedDomain === domain.name }"
-                  :style="getDomainPosition(idx)"
+                  :class="{ 
+                    'domain-selected': selectedDomain === domain.name,
+                    'domain-adjust-up': domain.name === '水域' || domain.name === '雷域'
+                  }"
                   @click="selectDomain(domain)"
+                  @mouseenter="hoveredDomain = domain.name"
+                  @mouseleave="hoveredDomain = null"
                 >
                   <div class="domain-circle">
                     <img v-if="domain.image" :src="domain.image" :alt="domain.name" class="domain-img" />
                     <div v-else :style="{ background: domain.color }" class="domain-fallback"></div>
                   </div>
-                  <div class="domain-label">{{ domain.name }}</div>
                 </button>
               </div>
             </div>
@@ -740,10 +716,16 @@ function handleDecision(choice: '建立' | '不建立') {
   border-radius: 20px;
   border: none;
   cursor: pointer;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.2);
   color: #fff;
   font-family: Arial, -apple-system, Roboto, Helvetica, sans-serif;
   font-size: 16px;
+  margin-bottom: 24px;
+  transition: background-color 0.2s ease;
+}
+
+.seaturtle-back-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .seaturtle-back-icon {
@@ -797,6 +779,31 @@ function handleDecision(choice: '建立' | '不建立') {
   border-radius: 30px;
   padding: 32px 24px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+/* 左上角的海龜湯 Logo */
+.turtle-logo-box {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+}
+
+.turtle-logo-icon {
+  width: 24px;
+  height: 24px;
+  fill: #ff5739;
+}
+
+.turtle-logo-text {
+  font-family: Arial, -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
 }
 
 .wheel-inner {
@@ -808,46 +815,24 @@ function handleDecision(choice: '建立' | '不建立') {
 }
 
 .wheel-container {
-  position: relative;
-  width: min(380px, 100%);
-  aspect-ratio: 1 / 1;
+  width: 100%;
+  max-width: 400px;
   margin: 0 auto;
+  margin-top: 24px;
 }
 
-/* 連線 SVG */
+/* 九宮格 3x3 佈局 */
 .wheel-lines {
-  position: absolute;
-  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   width: 100%;
-  height: 100%;
   pointer-events: none;
 }
 
-/* allow buttons inside wheel to receive pointer events even if parent has pointer-events:none */
-.wheel-lines .domain-item,
-.wheel-lines .domain-center {
+/* allow buttons inside wheel to receive pointer events */
+.wheel-lines .domain-item {
   pointer-events: auto;
-}
-
-/* 中心域 */
-.domain-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.center-circle .domain-img {
-  width: 70%;
-  height: 70%;
-  object-fit: cover;
 }
 
 .center-fallback,
@@ -858,37 +843,65 @@ function handleDecision(choice: '建立' | '不建立') {
 
 /* 周圍域 Button */
 .domain-item {
-  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 0;
   background: none;
   border: none;
   cursor: pointer;
+  padding: 0;
+  aspect-ratio: 1 / 1;
+  /* 未懸停時：較淡的顏色 */
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+/* 懸停時：恢復完整顏色 並顯示在最上層 */
+.domain-item:hover {
+  opacity: 1;
+  z-index: 10;
+  position: relative;
+}
+
+/* 選中狀態也顯示完整顏色 */
+.domain-item.domain-selected {
+  opacity: 1;
 }
 
 .domain-circle {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
   overflow: hidden;
-  border: 2px solid white;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
+  background: #f0f0f0;
+}
+
+.domain-item:hover .domain-circle,
+.domain-item.domain-selected .domain-circle {
+  transform: scale(1.05);
+}
+
+.domain-item:hover {
+  transform: scale(1.05);
 }
 
 .domain-img {
-  width: 200px;
-  height: 200px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
-.domain-label {
-  margin-top: 4px;
-  color: #333;
-  font-family: Arial, -apple-system, Roboto, Helvetica, sans-serif;
-  font-size: 12px;
+
+/* 水域和雷域的圖片向上調整 */
+.domain-adjust-up .domain-img {
+  object-position: center 20%;
 }
 
 /* 選中狀態 */
