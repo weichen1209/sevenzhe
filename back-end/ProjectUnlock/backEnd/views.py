@@ -503,3 +503,107 @@ from django.http import JsonResponse
 def status(request):
 	"""簡單的 Health check / API 測試端點。"""
 	return JsonResponse({"status": "ok", "message": "backEnd reachable"})
+
+
+@api_view(['GET'])
+def get_group_policies(request):
+    """
+    獲取組別的政策卡片
+    
+    Query params:
+    - group_id: 組別 ID
+    
+    Response:
+    {
+        "ok": true,
+        "policies": [
+            {
+                "policy_id": 1,
+                "policy_title": "火力發電廠",
+                "economy": 2,
+                "population": 0,
+                "healthy": -3,
+                "food": 0,
+                "electricity": 3,
+                "image": "/policyCards/火域/火力發電廠.png"
+            },
+            ...
+        ]
+    }
+    """
+    try:
+        group_id = request.GET.get('group_id')
+        
+        if not group_id:
+            return Response({
+                'ok': False,
+                'error': '缺少 group_id 參數'
+            }, status=400)
+        
+        # 使用原生 SQL 查詢，因為表格沒有外鍵關係
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    p.policy_id,
+                    p.policy_title,
+                    p.economy,
+                    p.population,
+                    p.healthy,
+                    p.food,
+                    p.electricity,
+                    p.policycard_id
+                FROM policy_table p
+                INNER JOIN groupPolicy_table gp ON p.policy_id = gp.policy_id
+                WHERE gp.group_id = %s
+                ORDER BY p.policy_id
+            """, [group_id])
+            
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
+            
+            policies = []
+            for row in rows:
+                policy_dict = dict(zip(columns, row))
+                
+                # 將 policycard_id 轉換為圖片路徑
+                # policycard_id 可能是: "public/policyCards/火域/海邊.png" 或 "火域/海邊"
+                policycard_id = policy_dict.get('policycard_id', '')
+                
+                # 清理路徑：移除 "public/" 前綴和多餘的路徑部分
+                if 'public/policyCards/' in policycard_id:
+                    # 提取 public/policyCards/ 之後的部分
+                    image_path = '/' + policycard_id.split('public/')[-1]
+                elif policycard_id.startswith('/policyCards/'):
+                    image_path = policycard_id
+                elif policycard_id:
+                    # 如果只有 "火域/海邊" 或 "火域/海邊.png"
+                    if not policycard_id.endswith('.png'):
+                        image_path = f"/policyCards/{policycard_id}.png"
+                    else:
+                        image_path = f"/policyCards/{policycard_id}"
+                else:
+                    image_path = ''
+                
+                policies.append({
+                    'policy_id': policy_dict['policy_id'],
+                    'policy_title': policy_dict['policy_title'],
+                    'economy': policy_dict['economy'],
+                    'population': policy_dict['population'],
+                    'healthy': policy_dict['healthy'],
+                    'food': policy_dict['food'],
+                    'electricity': policy_dict['electricity'],
+                    'image': image_path
+                })
+        
+        return Response({
+            'ok': True,
+            'policies': policies
+        })
+        
+    except Exception as err:
+        import traceback
+        return Response({
+            'ok': False,
+            'error': str(err),
+            'traceback': traceback.format_exc()
+        }, status=500)

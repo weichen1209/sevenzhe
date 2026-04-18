@@ -20,6 +20,7 @@ urlpatterns = [
     # 組別 API
     path('group-members/', views.get_group_members, name='get_group_members'),
     path('group-values/', views.get_group_values, name='get_group_values'),
+    path('group-policies/', views.get_group_policies, name='get_group_policies'),
     path('student-clues/', views.get_student_clues, name='get_student_clues'),
     
     # 調試 API

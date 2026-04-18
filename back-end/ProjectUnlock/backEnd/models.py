@@ -78,3 +78,29 @@ class ChatMessage(models.Model):
 
     class Meta:
         ordering = ['created_at']
+
+
+class Policy(models.Model):
+    """政策表"""
+    policy_id = models.IntegerField(primary_key=True)
+    policy_title = models.TextField()
+    economy = models.IntegerField()
+    population = models.IntegerField()
+    healthy = models.IntegerField()
+    food = models.IntegerField()
+    electricity = models.IntegerField()
+    policycard_id = models.TextField()
+
+    class Meta:
+        db_table = 'policy_table'
+        managed = False
+
+
+class GroupPolicy(models.Model):
+    """組別政策關聯表"""
+    group_id = models.IntegerField()
+    policy_id = models.IntegerField()
+
+    class Meta:
+        db_table = 'groupPolicy_table'
+        managed = False
