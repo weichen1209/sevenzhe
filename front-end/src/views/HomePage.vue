@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import Header from '../components/Header.vue'
 
 interface StatIndicator {
   label: string
@@ -22,52 +21,12 @@ interface BuildingCard {
 }
 
 const stats = ref<StatIndicator[]>([
-  { label: '經濟', value: 0, color: '#87FF7C' },
-  { label: '人口', value: 0, color: '#7C7EFF' },
-  { label: '健康', value: 0, color: '#FF7C7C' },
-  { label: '糧食', value: 0, color: '#FFC47C' },
-  { label: '電力', value: 0, color: '#FFEE7C' }
+  { label: '經濟', value: 50, color: '#87FF7C' },
+  { label: '人口', value: 50, color: '#7C7EFF' },
+  { label: '健康', value: 50, color: '#FF7C7C' },
+  { label: '糧食', value: 50, color: '#FFC47C' },
+  { label: '電力', value: 50, color: '#FFEE7C' }
 ])
-
-// circle constants for SVG progress
-const circleR = 16
-const circleCircumference = 2 * Math.PI * circleR
-
-async function loadGroupValues() {
-  try {
-    const groupId = localStorage.getItem('group_id')
-    if (!groupId) return
-
-    const resp = await fetch(`/api/group-values/?group_id=${groupId}`)
-    const json = await resp.json()
-    if (!json.ok) {
-      console.error('Failed to load group values', json.error)
-      return
-    }
-
-    const d = json.data
-    // 轉換並填入 stats（對應順序: 經濟, 人口, 健康, 糧食, 電力）
-    const map: Record<string, number> = {
-      economy: Number(d.economy) || 0,
-      polulation: Number(d.polulation) || 0,
-      healthy: Number(d.healthy) || 0,
-      food: Number(d.food) || 0,
-      eletricity: Number(d.eletricity) || 0
-    }
-
-    const updated = [
-      { label: '經濟', value: Math.max(0, Math.min(100, map.economy)), color: '#87FF7C' },
-      { label: '人口', value: Math.max(0, Math.min(100, map.polulation)), color: '#7C7EFF' },
-      { label: '健康', value: Math.max(0, Math.min(100, map.healthy)), color: '#FF7C7C' },
-      { label: '糧食', value: Math.max(0, Math.min(100, map.food)), color: '#FFC47C' },
-      { label: '電力', value: Math.max(0, Math.min(100, map.eletricity)), color: '#FFEE7C' }
-    ]
-
-    stats.value = updated
-  } catch (err) {
-    console.error('loadGroupValues error', err)
-  }
-}
 
 // 從 sessionStorage 讀取遊戲數值（關閉瀏覽器會自動重置）
 onMounted(() => {
@@ -79,9 +38,6 @@ onMounted(() => {
       value: parsed[stat.label] ?? stat.value
     }))
   }
-
-  // 載入組別的實際數值（若已登入）
-  loadGroupValues()
 })
 
 const buildingCards = ref<BuildingCard[]>([
@@ -186,21 +142,16 @@ const buildingCards = ref<BuildingCard[]>([
   }
 ])
 
-// 從 localStorage 讀取學生名字
-const studentName = computed(() => {
-  return localStorage.getItem('student_name') || '玩家'
-})
-
 // 幸福度 = 五個數值的平均
 const happiness = computed(() => {
   const total = stats.value.reduce((sum, stat) => sum + stat.value, 0)
   return Math.round(total / stats.value.length)
 })
 
-// 等級判定（根據需求： <45% 未開發國家；>=45% 且 <60% 為開發中國家；>=60% 為已開發國家）
+// 等級判定
 const happinessLevel = computed(() => {
-  if (happiness.value < 45) return '未開發國家'
-  if (happiness.value >= 45 && happiness.value < 60) return '開發中國家'
+  if (happiness.value < 35) return '未開發國家'
+  if (happiness.value <= 70) return '開發中國家'
   return '已開發國家'
 })
 
@@ -210,8 +161,18 @@ const showSidebar = ref(false)
 const sidebarSection = ref<string | null>(null)
 
 const players = ref(['玩家一', '玩家二', '玩家三', '玩家四', '玩家五'])
-const groupMembers = ref<any[]>([])
-const clues = ref<any[]>([])
+const clues = ref([
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。',
+  '消波塊能夠破壞海浪結構，使其在上岸前便消弭。'
+])
 
 const router = useRouter()
 let lastScrollPosition = 0
@@ -256,79 +217,6 @@ function toggleSection(section: string) {
     sidebarSection.value = null
   } else {
     sidebarSection.value = section
-    // 如果切換到組員，加載同組成員
-    if (section === 'group') {
-      loadGroupMembers()
-    }
-    // 如果切換到線索，加載學生的線索
-    if (section === 'clues') {
-      loadStudentClues()
-    }
-  }
-}
-
-async function loadGroupMembers() {
-  try {
-    const groupId = localStorage.getItem('group_id')
-    const studentId = localStorage.getItem('student_id')
-
-    if (!groupId) {
-      console.error('Group ID not found in localStorage')
-      return
-    }
-
-    const response = await fetch(`/api/group-members/?group_id=${groupId}&student_id=${studentId}`)
-    const data = await response.json()
-
-    if (data.ok) {
-      groupMembers.value = data.data
-    } else {
-      console.error('Failed to load group members:', data.error)
-    }
-  } catch (error) {
-    console.error('Error loading group members:', error)
-  }
-}
-
-async function loadStudentClues() {
-  try {
-    const studentId = localStorage.getItem('student_id')
-    if (!studentId) {
-      console.error('Student ID not found in localStorage')
-      return
-    }
-
-    const response = await fetch(`/api/student-clues/?student_id=${studentId}`)
-    const data = await response.json()
-
-    if (data.ok) {
-      // 修正圖片 URL 路徑
-      // 數據庫中的路徑是 'assets/clues/...'，需要轉換為 '/clues/...'
-      const processedClues = (data.data || []).map((clue: any) => {
-        let clueUrl = clue.clue_url || ''
-        
-        // 如果 URL 包含 'assets/clues/'，替換為 '/clues/'
-        if (clueUrl.includes('assets/clues/')) {
-          clueUrl = clueUrl.replace('assets/clues/', '/clues/')
-        } else if (clueUrl.startsWith('assets/')) {
-          // 備用方案：如果只是 'assets/' 開頭
-          clueUrl = clueUrl.replace('assets/', '/clues/')
-        }
-        
-        return {
-          ...clue,
-          clue_url: clueUrl
-        }
-      })
-      
-      clues.value = processedClues
-    } else {
-      console.error('Failed to load student clues:', data.error)
-      clues.value = []
-    }
-  } catch (error) {
-    console.error('Error loading student clues:', error)
-    clues.value = []
   }
 }
 
@@ -338,17 +226,6 @@ function goToKnowledgeTree() {
 
 function goToLeaderboard() {
   router.push({ name: 'leaderboard' })
-}
-
-function handleLogout() {
-  // 清除本地存儲的用戶數據
-  localStorage.removeItem('student_id')
-  localStorage.removeItem('student_name')
-  localStorage.removeItem('group_id')
-  localStorage.removeItem('account')
-  
-  // 重定向到登入頁面
-  router.push('/login')
 }
 
 function goToSeaTurtleSoup() {
@@ -366,16 +243,19 @@ onBeforeUnmount(() => {
 <template>
   <div class="page-wrapper" :class="{ 'sidebar-open': showSidebar }">
     <!-- Sidebar Overlay (covers entire screen including header) -->
-    <transition name="slide-sidebar">
+    <transition name="fade">
       <div v-if="showSidebar" class="sidebar-overlay" @click="toggleSidebar">
         <div class="sidebar" @click.stop>
           <div class="sidebar-header">
-            <button class="sidebar-close-btn" aria-label="Close menu" @click="toggleSidebar">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z" fill="#333333"/>
-              </svg>
-            </button>
-            <span class="sidebar-player-name">{{ studentName }}</span>
+            <div class="sidebar-user">
+              <button class="sidebar-close-btn" aria-label="Close menu" @click="toggleSidebar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z" fill="#333333"/>
+                </svg>
+              </button>
+              <span class="sidebar-username">玩家一</span>
+            </div>
+            <div class="sidebar-divider"></div>
           </div>
 
           <div class="sidebar-menu">
@@ -408,8 +288,8 @@ onBeforeUnmount(() => {
               </svg>
             </div>
             <div class="menu-divider"></div>
-
-            <button class="menu-item logout-btn" @click="handleLogout">
+            
+            <button class="menu-item">
               登出
             </button>
           </div>
@@ -419,11 +299,11 @@ onBeforeUnmount(() => {
           <div v-if="sidebarSection === 'group'" class="section-content">
             <div class="player-list">
               <button 
-                v-for="member in groupMembers" 
-                :key="member.student_id"
+                v-for="player in players" 
+                :key="player"
                 class="player-btn"
               >
-                {{ member.student_name }}
+                {{ player }}
               </button>
             </div>
           </div>
@@ -437,9 +317,8 @@ onBeforeUnmount(() => {
                 :key="index"
                 class="clue-item"
               >
-                <div class="clue-image">
-                  <img :src="clue.clue_url" :alt="`線索 ${index + 1}`" />
-                </div>
+                <div class="clue-badge">線索</div>
+                <div class="clue-text">{{ clue }}</div>
               </div>
             </div>
           </div>
@@ -503,7 +382,24 @@ onBeforeUnmount(() => {
     </transition>
 
     <!-- Header -->
-    <Header @toggle-sidebar="toggleSidebar" @toggle-notification="toggleNotification" :isNotificationActive="isNotificationActive" />
+    <header class="header">
+      <div class="header-content">
+        <div class="header-left">
+          <button class="icon-btn" aria-label="Menu" @click="toggleSidebar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z" fill="black"/>
+            </svg>
+          </button>
+          <h1 class="header-title">破解安洛克</h1>
+        </div>
+        
+        <button class="icon-btn" aria-label="Notifications" @click="toggleNotification">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M22 20H2V18H3V11.031C3 6.043 7.03 2 12 2C16.97 2 21 6.043 21 11.031V18H22V20ZM5 18H19V11.031C19 7.148 15.866 4 12 4C8.134 4 5 7.148 5 11.031V18ZM9.5 21H14.5C14.5 21.663 14.2366 22.2989 13.7678 22.7678C13.2989 23.2366 12.663 23.5 12 23.5C11.337 23.5 10.7011 23.2366 10.2322 22.7678C9.76339 22.2989 9.5 21.663 9.5 21Z" :fill="isNotificationActive ? '#FF4C4C' : 'black'"/>
+          </svg>
+        </button>
+      </div>
+    </header>
 
     <!-- Notification Panel -->
     <transition name="fade">
@@ -536,12 +432,12 @@ onBeforeUnmount(() => {
               class="stat-item"
             >
               <svg class="stat-circle" viewBox="0 0 40 40">
-                <!-- background track -->
-                <circle cx="20" cy="20" :r="circleR" fill="none" stroke="#D9D9D9" stroke-width="4" />
-                <!-- progress -->
-                <circle cx="20" cy="20" :r="circleR" fill="none" :stroke="stat.color" stroke-width="4" stroke-linecap="round"
-                  :stroke-dasharray="circleCircumference" :stroke-dashoffset="circleCircumference * (1 - (stat.value / 100))" transform="rotate(-90 20 20)" />
-                <text x="20" y="24.85" text-anchor="middle" class="stat-value">{{ Math.round(stat.value) }}</text>
+                <text x="20" y="24.85" text-anchor="middle" class="stat-value">{{ stat.value }}</text>
+                <path d="M40 20C40 31.0457 31.0457 40 20 40C8.9543 40 0 31.0457 0 20C0 8.9543 8.9543 0 20 0C31.0457 0 40 8.9543 40 20ZM4 20C4 28.8366 11.1634 36 20 36C28.8366 36 36 28.8366 36 20C36 11.1634 28.8366 4 20 4C11.1634 4 4 11.1634 4 20Z" fill="#D9D9D9"/>
+                <path
+                  d="M20 40C25.3043 40 30.3914 37.8929 34.1421 34.1421C37.8929 30.3914 40 25.3043 40 20C40 14.6957 37.8929 9.60859 34.1421 5.85786C30.3914 2.10714 25.3043 -6.32535e-08 20 0V4C24.2435 4 28.3131 5.68571 31.3137 8.68629C34.3143 11.6869 36 15.7565 36 20C36 24.2435 34.3143 28.3131 31.3137 31.3137C28.3131 34.3143 24.2435 36 20 36V40Z"
+                  :fill="stat.color"
+                />
               </svg>
               <span class="stat-label">{{ stat.label }}</span>
             </div>
@@ -645,7 +541,18 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow-x: hidden;
+}
+
+.page-wrapper.sidebar-open::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(145, 145, 145, 0.4);
+  z-index: 95;
+  pointer-events: none;
 }
 
 .header {
@@ -755,7 +662,7 @@ onBeforeUnmount(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: transparent;
   z-index: 200;
   display: flex;
 }
@@ -775,13 +682,9 @@ onBeforeUnmount(() => {
 
 .sidebar-header {
   padding: 30px 0 5px;
-  padding-left: 20px;
-  padding-right: 20px;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
+  flex-direction: column;
+  gap: 37px;
 }
 
 .sidebar-user {
@@ -814,20 +717,9 @@ onBeforeUnmount(() => {
 }
 
 .sidebar-divider {
-  width: 1px;
-  height: 24px;
-  background-color: #ddd;
-  margin: 0 20px;
-}
-
-.sidebar-player-name {
-  color: #333;
-  font-family: Arial, -apple-system, Roboto, Helvetica, sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 24px;
-  flex: 1;
-  text-align: center;
+  width: 100%;
+  height: 1px;
+  background: #EEE;
 }
 
 .sidebar-menu {
@@ -874,14 +766,6 @@ onBeforeUnmount(() => {
   margin: 0 -50px;
 }
 
-.logout-btn {
-  background: none;
-  color: #ff6b6b !important;
-  font-weight: 700 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
 .section-content {
   position: fixed;
   left: 236px;
@@ -926,53 +810,23 @@ onBeforeUnmount(() => {
 }
 
 .clues-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 20px;
   max-height: calc(100vh - 140px);
   overflow-y: auto;
   padding-right: 10px;
-  padding-bottom: 20px;
 }
 
 .clue-item {
   display: flex;
-  flex-direction: column;
+  padding: 10px 25px;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  border-radius: 15px;
-  border: 2px solid #FEAD00;
+  gap: 15px;
+  border-radius: 25px;
+  border: 1px solid #FEAD00;
   background: #FFF4D8;
-  min-height: 150px;
-  padding: 10px;
-  overflow: hidden;
-  aspect-ratio: 4 / 3;
-}
-
-.clue-image {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.clue-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 10px;
-}
-
-.clue-text-only {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  height: 100%;
+  min-height: 50px;
 }
 
 .clue-badge {
@@ -991,15 +845,8 @@ onBeforeUnmount(() => {
 .clue-text {
   color: #333;
   font-family: Arial, -apple-system, Roboto, Helvetica, sans-serif;
-  font-size: 14px;
-  line-height: 18px;
-  text-align: center;
-  word-break: break-word;
-  white-space: normal;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 16px;
+  line-height: 22px;
 }
 
 .main-content {
@@ -1256,35 +1103,6 @@ onBeforeUnmount(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-.slide-sidebar-enter-active {
-  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slide-sidebar-leave-active {
-  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slide-sidebar-enter-active .sidebar {
-  transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slide-sidebar-leave-active .sidebar {
-  transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slide-sidebar-enter-from {
-  opacity: 0;
-}
-
-.slide-sidebar-leave-to {
-  opacity: 0;
-}
-
-.slide-sidebar-enter-from .sidebar,
-.slide-sidebar-leave-to .sidebar {
-  transform: translateX(-100%);
 }
 
 .slide-content-enter-active {

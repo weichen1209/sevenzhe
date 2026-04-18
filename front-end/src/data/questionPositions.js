@@ -1,40 +1,86 @@
-// 統一的8題架構配置 - 使用像素單位以實現垂直滾動
-const basePositions = [
-  { index: 0, x: 50, y: 100, connections: [1, 2] },   // 題1 (3星) - 頂部中央
-  { index: 1, x: 28, y: 450, connections: [3] },      // 題2 (2星) - 左側
-  { index: 2, x: 72, y: 450, connections: [3] },      // 題3 (2星) - 右側
-  { index: 3, x: 50, y: 800, connections: [4, 5] },   // 題4 (1星) - 中央
-  { index: 4, x: 28, y: 1150, connections: [6] },     // 題5 (1星) - 左側
-  { index: 5, x: 72, y: 1150, connections: [7] },     // 題6 (1星) - 右側
-  { index: 6, x: 28, y: 1500, connections: [] },      // 題7 (1星) - 左下
-  { index: 7, x: 72, y: 1500, connections: [] }       // 題8 (1星) - 右下
+// ============================================
+// 直線排列配置 - 每題都有對應的位置和連接
+// 按難度從上到下排列（難到易）
+// 垂直間距：250px
+// ============================================
+
+// 物理 - 9題
+const physicsPositions = [
+  { index: 0, x: 50, y: 60, connections: [1] },           // Level 3
+  { index: 1, x: 50, y: 310, connections: [2] },          // Level 2
+  { index: 2, x: 50, y: 560, connections: [3] },          // Level 1
+  { index: 3, x: 50, y: 810, connections: [4] },
+  { index: 4, x: 50, y: 1060, connections: [5] },
+  { index: 5, x: 50, y: 1310, connections: [6] },
+  { index: 6, x: 50, y: 1560, connections: [7] },
+  { index: 7, x: 50, y: 1810, connections: [8] },
+  { index: 8, x: 50, y: 2060, connections: [] }
 ]
 
-// 灰色框配置
-const baseFrames = [
-  { x: 15, y: 300, width: 70, height: 250, rx: 8 },   // 第一個框 (2星題目區域)
-  { x: 15, y: 650, width: 70, height: 950, rx: 8 }    // 第二個框 (1星題目區域)
+// 化學 - 5題
+const chemistryPositions = [
+  { index: 0, x: 50, y: 60, connections: [1] },           // Level 3
+  { index: 1, x: 50, y: 310, connections: [2] },          // Level 3
+  { index: 2, x: 50, y: 560, connections: [3] },          // Level 2
+  { index: 3, x: 50, y: 810, connections: [4] },
+  { index: 4, x: 50, y: 1060, connections: [] }
 ]
 
-// 為每個科目生成位置配置
-const generateSubjectPositions = (startId) => {
-  return basePositions.map((pos, index) => ({
-    id: startId + index,
+// 生物 - 8題
+const biologyPositions = [
+  { index: 0, x: 50, y: 60, connections: [1] },           // Level 3
+  { index: 1, x: 50, y: 310, connections: [2] },          // Level 3
+  { index: 2, x: 50, y: 560, connections: [3] },          // Level 2
+  { index: 3, x: 50, y: 810, connections: [4] },
+  { index: 4, x: 50, y: 1060, connections: [5] },
+  { index: 5, x: 50, y: 1310, connections: [6] },
+  { index: 6, x: 50, y: 1560, connections: [7] },
+  { index: 7, x: 50, y: 1810, connections: [] }
+]
+
+// 地科 - 9題
+const earthSciencePositions = [
+  { index: 0, x: 50, y: 60, connections: [1] },           // Level 2
+  { index: 1, x: 50, y: 310, connections: [2] },          // Level 2
+  { index: 2, x: 50, y: 560, connections: [3] },          // Level 2
+  { index: 3, x: 50, y: 810, connections: [4] },          // Level 1
+  { index: 4, x: 50, y: 1060, connections: [5] },
+  { index: 5, x: 50, y: 1310, connections: [6] },
+  { index: 6, x: 50, y: 1560, connections: [7] },
+  { index: 7, x: 50, y: 1810, connections: [8] },
+  { index: 8, x: 50, y: 2060, connections: [] }
+]
+
+// 地理 - 9題
+const geographyPositions = [
+  { index: 0, x: 50, y: 60, connections: [1] },           // Level 3
+  { index: 1, x: 50, y: 310, connections: [2] },          // Level 3
+  { index: 2, x: 50, y: 560, connections: [3] },          // Level 3
+  { index: 3, x: 50, y: 810, connections: [4] },          // Level 2
+  { index: 4, x: 50, y: 1060, connections: [5] },         // Level 1
+  { index: 5, x: 50, y: 1310, connections: [6] },
+  { index: 6, x: 50, y: 1560, connections: [7] },
+  { index: 7, x: 50, y: 1810, connections: [8] },
+  { index: 8, x: 50, y: 2060, connections: [] }
+]
+
+// 為每個科目生成位置配置（基於索引）
+const generateSubjectPositions = (positions) => {
+  return positions.map((pos) => ({
+    index: pos.index,
     x: pos.x,
     y: pos.y,
-    connections: pos.connections.map(conn => startId + conn)
+    connections: pos.connections
   }))
 }
 
 export const questionPositions = {
-  chemistry: generateSubjectPositions(1),
-  biology: generateSubjectPositions(10),
-  physics: generateSubjectPositions(19),
-  'earth-science': generateSubjectPositions(28),
-  geography: generateSubjectPositions(37)
+  physics: generateSubjectPositions(physicsPositions),
+  chemistry: generateSubjectPositions(chemistryPositions),
+  biology: generateSubjectPositions(biologyPositions),
+  'earth-science': generateSubjectPositions(earthSciencePositions),
+  geography: generateSubjectPositions(geographyPositions)
 }
-
-export const frames = baseFrames
 
 // 計算連接線的座標
 export function calculateConnections(subjectId, cardWidth = 140, cardHeight = 100) {
@@ -43,8 +89,8 @@ export function calculateConnections(subjectId, cardWidth = 140, cardHeight = 10
 
   const lines = []
   positions.forEach(pos => {
-    pos.connections.forEach(targetId => {
-      const target = positions.find(p => p.id === targetId)
+    pos.connections.forEach(targetIdx => {
+      const target = positions[targetIdx]
       if (target) {
         lines.push({
           x1: pos.x,

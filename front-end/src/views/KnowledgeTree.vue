@@ -19,6 +19,25 @@ interface BuildingCard {
   }[]
 }
 
+interface Question {
+  id: number
+  content?: string
+  text?: string
+  level?: number
+  difficulty?: number
+  answer?: string
+  completed?: boolean
+  expanded?: boolean
+}
+
+interface Subject {
+  id: string
+  name: string
+  color: string
+  progress: { completed: number; total: number }
+  questions: Question[]
+}
+
 const router = useRouter()
 const currentSubjectIndex = ref(0)
 const currentSubject = ref(subjects[0])
@@ -175,8 +194,58 @@ const handleScroll = (event: Event) => {
 
 // 初次載入時滾動到底部
 onMounted(() => {
+  loadAllQuestions()
   scrollToBottom(0)
 })
+
+// 加載所有科目的題目
+async function loadAllQuestions() {
+  try {
+    const groupId = localStorage.getItem('group_id') || '1'
+    
+    // 並行加載所有科目的題目
+    const promises = subjects.map(async (subject) => {
+      try {
+        const response = await fetch(`/api/questions-by-subject/?subject=${subject.id}&group_id=${groupId}`)
+        const data = await response.json()
+        
+        if (data.ok && data.data && Array.isArray(data.data)) {
+          // 按 question_level 排序，難度高的在前（難到易）
+          const dataArray = data.data as any[]
+          dataArray.sort((a: any, b: any) => b.question_level - a.question_level)
+          
+          // 將從後端取得的題目轉換為前端所需的格式
+          const questionsArray = dataArray.map((q: any) => ({
+            id: q.question_id,
+            content: q.content,
+            text: q.content, // 為了相容性
+            level: q.question_level,
+            difficulty: q.question_level, // 為了相容性
+            answer: q.answer,
+            completed: false,
+            expanded: false
+          }))
+          
+          ;(subject as any).questions = questionsArray
+          
+          // 更新進度計數
+          subject.progress.total = (subject as any).questions.length
+          subject.progress.completed = 0
+          
+          console.log(`✓ 已加載 ${subject.name}: ${(subject as any).questions.length} 題`)
+        } else {
+          console.warn(`✗ 無法加載 ${subject.name} 題目:`, data.error || 'Unknown error')
+        }
+      } catch (error) {
+        console.error(`✗ 加載 ${subject.id} 時出錯:`, error)
+      }
+    })
+    
+    await Promise.all(promises)
+  } catch (error) {
+    console.error('✗ loadAllQuestions 出錯:', error)
+  }
+}
 
 const openModal = (question: any) => {
   selectedQuestion.value = question
