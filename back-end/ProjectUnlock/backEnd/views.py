@@ -496,3 +496,10 @@ def debug_clues_table(request):
     except Exception as err:
         import traceback
         return Response({'ok': False, 'error': str(err), 'traceback': traceback.format_exc()}, status=500)
+
+from django.http import JsonResponse
+
+
+def status(request):
+	"""簡單的 Health check / API 測試端點。"""
+	return JsonResponse({"status": "ok", "message": "backEnd reachable"})

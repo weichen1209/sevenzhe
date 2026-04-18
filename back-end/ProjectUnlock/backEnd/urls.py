@@ -4,6 +4,9 @@ from . import views
 app_name = 'backEnd'
 
 urlpatterns = [
+    # 狀態檢查 API
+    path('status/', views.status, name='status'),
+    
     # 登入 API
     path('login/', views.student_login, name='student_login'),
     

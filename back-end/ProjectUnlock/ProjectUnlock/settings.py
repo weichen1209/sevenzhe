@@ -89,7 +89,12 @@ DATABASES = {
         'USER': os.getenv('DB_USER', 'root'),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '8080'),
+        'PORT': os.getenv('DB_PORT', '3306'),
+        'OPTIONS': {
+            'connect_timeout': 10,
+            'read_timeout': 30,
+            'write_timeout': 30,
+        },
     }
 }
 
