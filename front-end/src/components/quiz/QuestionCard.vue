@@ -32,7 +32,7 @@ defineProps({
 .question-card {
   width: 200px;
   min-height: 120px;
-  background: #10B981;
+  background: linear-gradient(to right top, #058CA1, #3640FA);
   color: white;
   border-radius: 12px;
   padding: 16px;

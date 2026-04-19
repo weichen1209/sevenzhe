@@ -974,7 +974,7 @@ function handleLogout() {
 }
 
 .subject-badge {
-  background-color: #10B981;
+  background: linear-gradient(to right top, #058CA1, #3640FA);
   color: white;
   padding: 8px 24px;
   border-radius: 20px;

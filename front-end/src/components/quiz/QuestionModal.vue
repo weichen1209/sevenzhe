@@ -49,7 +49,7 @@ watch(() => props.show, (newVal) => {
         </div>
 
         <div class="question-display">
-          {{ question.text }}
+          {{ question.content }}
         </div>
 
         <!-- 結果顯示區域 -->
