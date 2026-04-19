@@ -607,3 +607,49 @@ def get_group_policies(request):
             'error': str(err),
             'traceback': traceback.format_exc()
         }, status=500)
+
+
+@api_view(['GET'])
+def get_quiz_questions(request):
+    """
+    取得指定科目的題目
+    GET /api/quiz-questions/?subject=物理
+    """
+    try:
+        subject = request.GET.get('subject', '物理')
+        
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT question_id, question_level, subject, content, answer
+                FROM question_table
+                WHERE subject = %s
+                ORDER BY question_level DESC, question_id ASC
+            """, [subject])
+            
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
+            
+            questions = []
+            for row in rows:
+                question_dict = dict(zip(columns, row))
+                questions.append({
+                    'id': question_dict['question_id'],
+                    'level': question_dict['question_level'],
+                    'subject': question_dict['subject'],
+                    'content': question_dict['content'],
+                    'answer': question_dict['answer'],
+                    'completed': False  # 前端用來追蹤是否已完成
+                })
+        
+        return Response({
+            'ok': True,
+            'questions': questions
+        })
+        
+    except Exception as err:
+        import traceback
+        return Response({
+            'ok': False,
+            'error': str(err),
+            'traceback': traceback.format_exc()
+        }, status=500)

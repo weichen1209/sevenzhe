@@ -5,7 +5,29 @@ import Header from '../components/Header.vue'
 import PathLayout from '../components/quiz/PathLayout.vue'
 import QuestionCard from '../components/quiz/QuestionCard.vue'
 import QuestionModal from '../components/quiz/QuestionModal.vue'
-import { subjects } from '../data/quizData.js'
+
+// 暫時保留 quizData.js 的 subjects 結構作為科目列表
+import { subjects as defaultSubjects } from '../data/quizData.js'
+
+interface Question {
+  id: number
+  level: number
+  subject: string
+  content: string
+  answer: string
+  completed: boolean
+}
+
+interface Subject {
+  id: string
+  name: string
+  color: string
+  progress: {
+    completed: number
+    total: number
+  }
+  questions: Question[]
+}
 
 interface BuildingCard {
   id: number
@@ -20,12 +42,66 @@ interface BuildingCard {
 }
 
 const router = useRouter()
+const subjects = ref<Subject[]>([])
 const currentSubjectIndex = ref(0)
-const currentSubject = ref(subjects[0])
+const currentSubject = ref<Subject | null>(null)
 const showModal = ref(false)
 const selectedQuestion = ref<any>(null)
 const resultState = ref('idle') // 'idle', 'correct', 'wrong'
 const subjectCards = ref<any[]>([])
+
+// 載入題目資料
+const loadQuestions = async () => {
+  try {
+    const subjectsToLoad = [
+      { name: '物理', id: 'physics', color: '#10B981' },
+      { name: '化學', id: 'chemistry', color: '#10B981' },
+      { name: '生物', id: 'biology', color: '#10B981' },
+      { name: '地科', id: 'earth-science', color: '#10B981' },
+      { name: '地理', id: 'geography', color: '#10B981' }
+    ]
+    
+    const loadedSubjects: Subject[] = []
+    
+    for (const subjectInfo of subjectsToLoad) {
+      const response = await fetch(`/api/quiz-questions/?subject=${subjectInfo.name}`)
+      const data = await response.json()
+      
+      if (data.ok && data.questions.length > 0) {
+        loadedSubjects.push({
+          id: subjectInfo.id,
+          name: subjectInfo.name,
+          color: subjectInfo.color,
+          progress: {
+            completed: 0,
+            total: data.questions.length
+          },
+          questions: data.questions
+        })
+      }
+    }
+    
+    if (loadedSubjects.length > 0) {
+      subjects.value = loadedSubjects
+      currentSubject.value = loadedSubjects[0]
+    }
+  } catch (error) {
+    console.error('載入題目失敗:', error)
+    // 如果 API 失敗，使用 defaultSubjects
+    const fallbackSubjects = defaultSubjects.filter(s => 
+      ['物理', '化學', '生物', '地科', '地理'].includes(s.name)
+    )
+    if (fallbackSubjects.length > 0) {
+      subjects.value = fallbackSubjects as any
+      currentSubject.value = fallbackSubjects[0] as any
+    }
+  }
+}
+
+onMounted(async () => {
+  await loadQuestions()
+  scrollToBottom(0)
+})
 
 // 導覽列相關變數
 const isNotificationActive = ref(true)
@@ -165,9 +241,9 @@ const scrollToBottom = (index: number) => {
 const handleScroll = (event: Event) => {
   const container = event.target as HTMLElement
   const index = Math.round(container.scrollLeft / container.clientWidth)
-  if (index !== currentSubjectIndex.value && index < subjects.length) {
+  if (index !== currentSubjectIndex.value && index < subjects.value.length) {
     currentSubjectIndex.value = index
-    currentSubject.value = subjects[index]
+    currentSubject.value = subjects.value[index]
     // 切換科目時滾動到底部
     scrollToBottom(index)
   }
@@ -198,7 +274,7 @@ const normalizeAnswer = (text: string) => {
 }
 
 const handleSubmit = (userAnswer: string) => {
-  if (!selectedQuestion.value) return
+  if (!selectedQuestion.value || !currentSubject.value) return
 
   const correctAnswer = selectedQuestion.value.answer
   const normalizedUserAnswer = normalizeAnswer(userAnswer)
@@ -480,7 +556,7 @@ function handleLogout() {
       </div>
     </div>
 
-    <div class="subject-info">
+    <div class="subject-info" v-if="currentSubject">
       <div class="subject-badge">{{ currentSubject.name }}</div>
       <div class="subject-progress">請選擇題目挑戰</div>
       <div class="subject-progress">已完成 {{ currentSubject.progress.completed }}/{{ currentSubject.progress.total }} 題</div>

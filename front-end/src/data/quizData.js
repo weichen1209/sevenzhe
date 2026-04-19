@@ -1,5 +1,21 @@
 export const subjects = [
   {
+    id: 'physics',
+    name: '物理',
+    color: '#10B981',
+    progress: { completed: 0, total: 8 },
+    questions: [
+      { id: 19, text: '力的三要素為何？', difficulty: 3, expanded: false, answer: '大小方向作用點', explanation: '力的三要素包括：力的大小、力的方向、力的作用點。這三個要素完整描述了一個力的特性。' },
+      { id: 20, text: '光的三原色是哪三種？', difficulty: 2, expanded: false, answer: '紅綠藍', explanation: '光的三原色是紅色(Red)、綠色(Green)、藍色(Blue)，簡稱RGB。混合這三種色光可以產生其他顏色。' },
+      { id: 21, text: '聲音在什麼介質中傳播最快？', difficulty: 2, expanded: false, answer: '固體', explanation: '聲音在固體中傳播最快，因為固體分子排列緊密。傳播速度：固體 > 液體 > 氣體。' },
+      { id: 22, text: '溫度計是測量什麼的工具？', difficulty: 1, expanded: false, answer: '溫度', explanation: '溫度計是用來測量物體溫度的工具，常見的有水銀溫度計、酒精溫度計和電子溫度計。' },
+      { id: 23, text: '電燈泡發光是什麼能轉換成光能？', difficulty: 1, expanded: false, answer: '電能', explanation: '電燈泡將電能轉換成光能和熱能，讓燈絲發熱發光，是能量轉換的例子。' },
+      { id: 24, text: '水的三態變化包括哪些？', difficulty: 1, expanded: false, answer: '固液氣', explanation: '水的三態是固態(冰)、液態(水)、氣態(水蒸氣)。物質的三態可以互相轉換。' },
+      { id: 25, text: '鏡子反射光是什麼現象？', difficulty: 1, expanded: false, answer: '光的反射', explanation: '鏡子反射光是光的反射現象。光遇到光滑表面會反射，入射角等於反射角。' },
+      { id: 26, text: '摩擦力的方向是？', difficulty: 1, expanded: false, answer: '相反', explanation: '摩擦力的方向與物體運動方向相反，是一種阻礙物體運動的力。' },
+    ]
+  },
+  {
     id: 'chemistry',
     name: '化學',
     color: '#10B981',
@@ -29,22 +45,6 @@ export const subjects = [
       { id: 15, text: '心臟的主要功能是？', difficulty: 1, expanded: false, answer: '輸送血液', explanation: '心臟是血液循環系統的中心，主要功能是將血液輸送到全身各處，提供氧氣和養分。' },
       { id: 16, text: '呼吸時吸入什麼氣體？', difficulty: 1, expanded: false, answer: '氧氣', explanation: '呼吸時吸入氧氣，呼出二氧化碳。氧氣進入肺部後，會進入血液中供給全身細胞使用。' },
       { id: 17, text: '食物在哪個器官開始消化？', difficulty: 1, expanded: false, answer: '口腔', explanation: '消化從口腔開始，透過咀嚼和唾液中的酵素開始分解食物，尤其是澱粉類食物。' },
-    ]
-  },
-  {
-    id: 'physics',
-    name: '物理',
-    color: '#10B981',
-    progress: { completed: 0, total: 8 },
-    questions: [
-      { id: 19, text: '力的三要素為何？', difficulty: 3, expanded: false, answer: '大小方向作用點', explanation: '力的三要素包括：力的大小、力的方向、力的作用點。這三個要素完整描述了一個力的特性。' },
-      { id: 20, text: '光的三原色是哪三種？', difficulty: 2, expanded: false, answer: '紅綠藍', explanation: '光的三原色是紅色(Red)、綠色(Green)、藍色(Blue)，簡稱RGB。混合這三種色光可以產生其他顏色。' },
-      { id: 21, text: '聲音在什麼介質中傳播最快？', difficulty: 2, expanded: false, answer: '固體', explanation: '聲音在固體中傳播最快，因為固體分子排列緊密。傳播速度：固體 > 液體 > 氣體。' },
-      { id: 22, text: '溫度計是測量什麼的工具？', difficulty: 1, expanded: false, answer: '溫度', explanation: '溫度計是用來測量物體溫度的工具，常見的有水銀溫度計、酒精溫度計和電子溫度計。' },
-      { id: 23, text: '電燈泡發光是什麼能轉換成光能？', difficulty: 1, expanded: false, answer: '電能', explanation: '電燈泡將電能轉換成光能和熱能，讓燈絲發熱發光，是能量轉換的例子。' },
-      { id: 24, text: '水的三態變化包括哪些？', difficulty: 1, expanded: false, answer: '固液氣', explanation: '水的三態是固態(冰)、液態(水)、氣態(水蒸氣)。物質的三態可以互相轉換。' },
-      { id: 25, text: '鏡子反射光是什麼現象？', difficulty: 1, expanded: false, answer: '光的反射', explanation: '鏡子反射光是光的反射現象。光遇到光滑表面會反射，入射角等於反射角。' },
-      { id: 26, text: '摩擦力的方向是？', difficulty: 1, expanded: false, answer: '相反', explanation: '摩擦力的方向與物體運動方向相反，是一種阻礙物體運動的力。' },
     ]
   },
   {

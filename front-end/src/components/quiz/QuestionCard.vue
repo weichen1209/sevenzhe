@@ -5,12 +5,12 @@
         v-for="i in 3"
         :key="i"
         class="star"
-        :class="{ active: i <= question.difficulty }"
+        :class="{ active: i <= question.level }"
       >
-        {{ i <= question.difficulty ? '★' : '☆' }}
+        {{ i <= question.level ? '★' : '☆' }}
       </span>
     </div>
-    <div class="question-text">{{ question.text }}</div>
+    <div class="question-text">{{ question.content }}</div>
     <div v-if="question.expanded" class="question-detail">
       <div class="detail-content">
         這裡是題目的詳細說明和答案內容...

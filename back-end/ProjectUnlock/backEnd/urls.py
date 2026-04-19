@@ -23,6 +23,9 @@ urlpatterns = [
     path('group-policies/', views.get_group_policies, name='get_group_policies'),
     path('student-clues/', views.get_student_clues, name='get_student_clues'),
     
+    # 題目 API
+    path('quiz-questions/', views.get_quiz_questions, name='get_quiz_questions'),
+    
     # 調試 API
     path('debug/clues-table/', views.debug_clues_table, name='debug_clues_table'),
 ]

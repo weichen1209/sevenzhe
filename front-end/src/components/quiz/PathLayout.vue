@@ -1,7 +1,7 @@
 <template>
-  <div class="path-layout">
+  <div class="path-layout" :style="{ height: `${layoutHeight}px` }">
     <!-- SVG 連接線層 -->
-    <svg class="path-svg" viewBox="0 0 100 1650" preserveAspectRatio="none">
+    <svg class="path-svg" :viewBox="svgViewBox" preserveAspectRatio="none">
       <!-- 繪製帶有交匯點的連接路徑 -->
       <path
         v-for="(path, index) in connectionPaths"
@@ -47,6 +47,20 @@ const props = defineProps({
 defineEmits(['questionClick'])
 
 const positions = computed(() => questionPositions[props.subjectId] || [])
+
+// 動態計算容器高度，根據最後一個題目的 y 位置
+const layoutHeight = computed(() => {
+  if (positions.value.length === 0) return 1650
+  
+  const maxY = Math.max(...positions.value.map(pos => pos.y))
+  // 加上額外的 padding (200px) 確保底部題目完整顯示
+  return maxY + 200
+})
+
+// SVG viewBox 高度也要動態調整
+const svgViewBox = computed(() => {
+  return `0 0 100 ${layoutHeight.value}`
+})
 
 // 生成帶有交匯點的連接路徑
 const connectionPaths = computed(() => {
@@ -133,7 +147,8 @@ const getPositionStyle = (index) => {
 .path-layout {
   position: relative;
   width: 100%;
-  height: 1650px; /* 固定高度以容納所有題目和滾動 */
+  min-height: 1200px; /* 最小高度 */
+  /* height 由 inline style 動態設定 */
 }
 
 .path-svg {

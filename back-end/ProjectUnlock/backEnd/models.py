@@ -104,3 +104,16 @@ class GroupPolicy(models.Model):
     class Meta:
         db_table = 'groupPolicy_table'
         managed = False
+
+
+class Question(models.Model):
+    """題目表"""
+    question_id = models.IntegerField(primary_key=True)
+    question_level = models.IntegerField()
+    subject = models.TextField()
+    content = models.TextField()
+    answer = models.TextField()
+
+    class Meta:
+        db_table = 'question_table'
+        managed = False
