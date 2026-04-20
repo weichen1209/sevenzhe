@@ -1,0 +1,6 @@
+#!/Users/luoqizhe/假裝是D槽/論文/破解安洛克/ProjectUnlock0420/ProjectUnlock/sevenzhe/venv/bin/python
+import sys
+from openai.cli import main
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(main())
