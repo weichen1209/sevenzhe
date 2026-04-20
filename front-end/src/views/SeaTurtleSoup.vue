@@ -21,6 +21,73 @@ const route = useRoute()
 const showDecisionModal = ref(false)
 const decisionDomain = ref('')
 
+// 載入組別政策數量
+const loadPolicyCount = async () => {
+  try {
+    const groupId = localStorage.getItem('group_id')
+    if (!groupId) {
+      console.warn('未找到 group_id，使用預設值')
+      return
+    }
+
+    const response = await fetch(`http://127.0.0.1:8000/api/group-policy-count/?group_id=${groupId}`)
+    const data = await response.json()
+
+    if (data.ok) {
+      progressText.value = `${data.policy_count} / 9`
+    }
+  } catch (error) {
+    console.error('載入政策數量失敗:', error)
+  }
+}
+
+// 載入組別線索數量
+const loadCluesCount = async () => {
+  try {
+    const groupId = localStorage.getItem('group_id')
+    if (!groupId) {
+      console.warn('未找到 group_id，使用預設值')
+      return
+    }
+
+    const response = await fetch(`http://127.0.0.1:8000/api/group-clues-count/?group_id=${groupId}`)
+    const data = await response.json()
+
+    if (data.ok) {
+      cluesFoundText.value = `${data.group_clues} / ${data.total_clues}`
+    }
+  } catch (error) {
+    console.error('載入線索數量失敗:', error)
+  }
+}
+
+// 載入已完成的域
+const completedDomains = ref<string[]>([])
+
+const loadCompletedDomains = async () => {
+  try {
+    const groupId = localStorage.getItem('group_id')
+    if (!groupId) {
+      console.warn('未找到 group_id，使用預設值')
+      return
+    }
+
+    const response = await fetch(`http://127.0.0.1:8000/api/completed-domains/?group_id=${groupId}`)
+    const data = await response.json()
+
+    if (data.ok) {
+      completedDomains.value = data.completed_domains
+    }
+  } catch (error) {
+    console.error('載入已完成域失敗:', error)
+  }
+}
+
+// 檢查域是否已完成
+const isDomainCompleted = (domainName: string) => {
+  return completedDomains.value.includes(domainName)
+}
+
 // 檢查是否從 ChatRoom 答對後返回
 onMounted(() => {
   if (route.query.showDecision === 'true' && route.query.domain) {
@@ -29,6 +96,11 @@ onMounted(() => {
     // 清除 query 參數
     router.replace({ path: '/sea-turtle-soup' })
   }
+  
+  // 載入政策數量、線索數量和已完成域
+  loadPolicyCount()
+  loadCluesCount()
+  loadCompletedDomains()
 })
 
 const domains = ref<Domain[]>([
@@ -199,6 +271,12 @@ function getLineEndY(index: number) {
 }
 
 function selectDomain(domain: Domain) {
+  // 檢查域是否已完成，如果已完成則不允許選取
+  if (isDomainCompleted(domain.name)) {
+    console.log('[SeaTurtleSoup] 域已完成，無法選取:', domain.name)
+    return
+  }
+  
   console.log('[SeaTurtleSoup] selectDomain called:', domain)
   selectedDomain.value = domain.name
   const routeName = 'seaturtlesoup-domain'
@@ -282,11 +360,13 @@ function handleDecision(choice: '建立' | '不建立') {
                   class="domain-item"
                   :class="{ 
                     'domain-selected': selectedDomain === domain.name,
-                    'domain-adjust-up': domain.name === '水域' || domain.name === '雷域'
+                    'domain-adjust-up': domain.name === '水域' || domain.name === '雷域',
+                    'domain-completed': isDomainCompleted(domain.name)
                   }"
                   @click="selectDomain(domain)"
                   @mouseenter="hoveredDomain = domain.name"
                   @mouseleave="hoveredDomain = null"
+                  :disabled="isDomainCompleted(domain.name)"
                 >
                   <div class="domain-circle">
                     <img v-if="domain.image" :src="domain.image" :alt="domain.name" class="domain-img" />
@@ -868,6 +948,23 @@ function handleDecision(choice: '建立' | '不建立') {
 /* 選中狀態也顯示完整顏色 */
 .domain-item.domain-selected {
   opacity: 1;
+}
+
+/* 已完成的域 - 反白並禁用 */
+.domain-item.domain-completed {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(80%);
+}
+
+.domain-item.domain-completed:hover {
+  opacity: 0.35;
+  transform: none;
+  z-index: 1;
+}
+
+.domain-item.domain-completed .domain-circle {
+  transform: none !important;
 }
 
 .domain-circle {
